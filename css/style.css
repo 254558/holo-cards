@@ -155,11 +155,13 @@ body {
   font-weight: 600;
 }
 
-/* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 等宽字体 + 乱序落定） */
+/* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 等宽字体 + 乱序落定）。
+   min-width 撑到最长卡名（Ultra Full Art 14 字符），框宽恒定 → 左侧"作者 ·"位置永不移动 */
 .author-box {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 11rem;
   padding: 0.4rem 0.7rem;
   border: 2px solid #fff;
   border-radius: 5px;

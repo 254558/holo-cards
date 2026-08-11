@@ -111,9 +111,12 @@
   }
 
   /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步）。
-     "作者"两字在方框外，方框里只放卡牌名 */
+     "作者"两字在方框外且永远固定：结构只建一次、复用（不清空重建），
+     方框宽度恒定（CSS min-width），所以左侧文字位置绝不移动，只有框内文字乱序动 */
   const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const authorBox = () => {
+  const ensureAuthor = () => {
+    const existing = labelEl.querySelector('.author-box')
+    if (existing) return existing
     labelEl.innerHTML = ''
     labelEl.appendChild(document.createTextNode('作者 · '))
     const box = document.createElement('span')
@@ -144,7 +147,7 @@
     faceUp = true
     busy = true
     card.classList.remove('loading')
-    shuffleTo(authorBox(), cur.label)
+    shuffleTo(ensureAuthor(), cur.label)
     setTimeout(() => { busy = false }, reduce ? 0 : 500) // 动画期间防连点
   }
 
