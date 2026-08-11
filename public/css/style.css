@@ -73,6 +73,38 @@ body {
   --stack-w: min(min(60vw, 320px), calc((100dvh - 230px) * 0.718));
 }
 
+/* ── iOS 26 Safari 竖屏 viewport-fit=cover 回归 workaround（WebKit bug #306465/#309743）──
+   iOS 26 起 Safari 竖屏不再让页面内容渲染到状态栏（灵动岛）与底部地址栏后面，
+   fixed 背景（inset:0）只覆盖安全区，上下露出白/灰条，点阵图案到不了工具栏区域。
+   修复思路（.safari26 只由 main.js 加在 iPhone + Safari 26 上，旧系统零影响）：
+   ① .bg-terminal 从 fixed 改为 absolute 随文档滚动，并向上/下出血
+     （顶部 62px 状态栏+灵动岛区域、底部 136px 地址栏+工具栏区域）；
+   ② body 加 62px 顶部滚动跑道（文档恰好可滚 62px）；
+   ③ main.js 初始 scrollTo(0,62) → Safari 在工具栏后合成真实页面像素（点阵），
+      而非采样纯色/白条；stage 用高度+负 margin 抵消滚动，内容仍精确居中。 */
+html.safari26 {
+  --safari26-top: 62px;     /* 顶部出血 = 滚动偏移（状态栏 + 灵动岛） */
+  --safari26-bottom: 136px; /* 底部出血（底部地址栏 + 工具栏） */
+  background: #94a3b8;      /* 滚动跑道外的边角兜底色 */
+}
+html.safari26 body {
+  min-height: calc(100dvh + var(--safari26-top)); /* 可滚范围恰好 = 顶部出血 62px */
+}
+html.safari26 .bg-terminal {
+  position: absolute; /* 随文档滚动：出血区的点阵才能被 Safari 合成到工具栏后 */
+  inset: auto;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100dvh + var(--safari26-top) + var(--safari26-bottom));
+}
+html.safari26 .stage {
+  /* 上下各出血：内容中心 = -(底-顶)/2 + (H+顶+底)/2 = H/2+顶 → 滚动偏移后仍居中 */
+  height: calc(100dvh + var(--safari26-top) + var(--safari26-bottom));
+  margin-top: calc(-1 * (var(--safari26-bottom) - var(--safari26-top)) / 2);
+  margin-bottom: calc(-1 * (var(--safari26-bottom) + var(--safari26-top)) / 2);
+}
+
 /* ── 牌堆：fan 层叠在顶层卡后面 ── */
 .stack {
   position: relative;
