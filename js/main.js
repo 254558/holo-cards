@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    全息卡 · 翻卡页
-   - 中央牌堆：顶层卡卡背朝上，点一下翻到正面（丰富翻卡动画）
+   - 中央牌堆：顶层卡卡背朝上，点一下翻到正面（卡背平滑翻转 + 卡面淡入）
    - 右划（超过卡宽 35%）= 不喜欢划走，下一张升到顶层并自动翻到正面；其他方向/短划弹回
    - 翻开后保持正面，只能右划换下一张；38 张划完自动洗牌重置
    - 空闲游移扫光 + 触摸/鼠标拖动时扫光跟随指针
@@ -101,7 +101,6 @@
     setCard(c)
     faceUp = false
     card.classList.add('loading')
-    card.classList.remove('flipping')
     // 牌堆抖一下 + 新卡升起
     stack.classList.remove('pop')
     void stack.offsetWidth
@@ -111,20 +110,14 @@
     wrap.classList.add('rising')
   }
 
-  /* 点一下翻面：卡背 → 正面（丰富翻卡动画）；翻正后再点保持正面 */
+  /* 点一下翻面：移除 loading → 卡背 0.45s 翻转 + 卡面淡入；翻正后再点保持正面 */
   const flip = () => {
     if (busy || faceUp) return
     faceUp = true
     busy = true
     card.classList.remove('loading')
-    card.classList.add('flipping')
-    wrap.classList.add('flipping')
     labelEl.innerHTML = `作者 · <strong>${cur.label}</strong>`
-    setTimeout(() => {
-      card.classList.remove('flipping')
-      wrap.classList.remove('flipping')
-      busy = false
-    }, reduce ? 0 : 720)
+    setTimeout(() => { busy = false }, reduce ? 0 : 500) // 动画期间防连点
   }
 
   /* 右划过阈值：飞向右侧 → 下一张（划完则洗牌重置） */
@@ -145,7 +138,6 @@
         labelEl.textContent = '看完了 · 已重新洗牌'
         faceUp = false
         card.classList.add('loading')
-        card.classList.remove('flipping')
         stack.classList.remove('pop')
         void stack.offsetWidth
         stack.classList.add('pop')

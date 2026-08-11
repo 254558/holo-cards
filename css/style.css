@@ -123,61 +123,16 @@ body {
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ── 翻卡效果（点一下从卡背翻到正面）── */
-/* 卡背 0°→180° 带过冲缓动；翻过 90° 后背面朝前，backface 转 hidden → 立即隐身，
-   不会把镜像卡背露在正面上方（穿模）；180° 后停在 front 之后 1px，被正面完全盖住 */
+/* ── 翻卡效果（点一下翻开）──
+   与抽卡页/以前项目一致：移除 loading 时卡背 0°→180° 平滑翻转（0.45s），
+   卡面同步 0.33s 淡入（base.css 自带过渡）；loading 恢复时卡背无过渡瞬切回正面。
+   backface hidden：卡背翻过 90° 背面朝前即隐身，不会把镜像卡背露出来 */
 .card__back {
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.2);
   backface-visibility: hidden;
 }
-.card.flipping .card__back {
-  transition: transform 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
-}
-.card.flipping .card__front {
-  transition: none; /* 压掉 base.css 的 opacity 0.33s 淡入，淡入时机完全交给 front-in */
-  animation: front-in 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
-}
-/* 卡面等卡背转过 90°（约 40%）再开始淡入，避免与卡背叠影 */
-@keyframes front-in {
-  0%   { opacity: 0; }
-  40%  { opacity: 0; }
-  62%  { opacity: 1; }
-  100% { opacity: 1; }
-}
-
-/* 翻转整卡缩放脉冲 + 外发光（drop-shadow 独立于 box-shadow，可叠） */
-.card-wrap.flipping {
-  animation:
-    flip-pulse 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.1),
-    flip-glow 0.62s ease-out;
-  pointer-events: none; /* 动画期间不响应输入 */
-}
-@keyframes flip-pulse {
-  0%   { transform: scale(1); }
-  42%  { transform: scale(1.06); }
-  100% { transform: scale(1); }
-}
-@keyframes flip-glow {
-  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
-  45%      { filter: drop-shadow(0 0 16px var(--card-glow)); }
-}
-
-/* 翻转时一道光泽从卡面扫过（放在 .card__front 内最上层） */
-.card__flip-sweep {
-  z-index: 5;
-  border-radius: var(--card-radius);
-  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
-  transform: translateX(-130%);
-  opacity: 0;
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-.card.flipping .card__flip-sweep {
-  animation: flip-sweep 0.6s ease-out 0.26s; /* 等卡面开始淡入（front-in 40%）再扫过 */
-}
-@keyframes flip-sweep {
-  0%   { transform: translateX(-130%); opacity: 0; }
-  25%  { opacity: 1; }
-  100% { transform: translateX(130%); opacity: 0; }
+.card.loading .card__back {
+  transition: none;
 }
 
 /* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
@@ -202,14 +157,8 @@ body {
 
 /* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
-  .card.flipping .card__back,
-  .card.flipping .card__front {
+  .card__back {
     transition: none;
-    animation: none;
-  }
-  .card.flipping .card__flip-sweep,
-  .card-wrap.flipping {
-    animation: none;
   }
   .card.spring {
     transition: none;
