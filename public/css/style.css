@@ -278,3 +278,17 @@ html.safari26 .stage {
     animation: none;
   }
 }
+
+/* ── SEO/读屏：视觉不可见但保留给爬虫与读屏软件的结构化文本 ──
+   绝对定位 + 1px 裁剪，不占布局、不出滚动条（h1/描述供搜索引擎理解页面主题） */
+.seo-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

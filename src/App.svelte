@@ -123,6 +123,9 @@
 <FaultyTerminal />
 
 <main class="stage">
+  <!-- SEO/读屏：视觉隐藏的结构化标题与描述（.seo-only 绝对定位不占布局） -->
+  <h1 class="seo-only">全息卡 · 翻卡 | Holo Cards — 38 张全息卡牌交互体验</h1>
+  <p class="seo-only">右划换卡、点按翻面、360° 弹簧弹出，每张卡都有独特的全息扫光与炫彩特效。</p>
   <!-- 中央牌堆：背后 8 层卡背扇形（装饰），顶层是真实可交互卡 -->
   <div class="stack" id="stack">
     <div class="stack__fan" aria-hidden="true">
