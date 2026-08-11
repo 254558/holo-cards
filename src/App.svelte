@@ -26,7 +26,6 @@
   let autoFlip = false       // 划走后新卡升起：自动翻到正面
   let advancing = false      // 划走后等待飞走过渡的 480ms 内防重复推进
   let pop = false            // 牌堆"少一张"抖动
-  let rising = false         // 新卡升起入场
 
   let labelEl
 
@@ -53,13 +52,11 @@
     }, reduce ? 0 : 480)
   }
 
-  /* 牌堆抖一下 + 新卡升起（每次换卡重触发 CSS 动画） */
+  /* 牌堆抖一下（新卡原位接替，不再升起入场：下一张一直候在底下，露出即接替） */
   const animateNewCard = () => {
     pop = false
-    rising = false
     requestAnimationFrame(() => {
       pop = true
-      rising = true
     })
   }
 
@@ -113,7 +110,16 @@
     <div class="stack__fan" aria-hidden="true">
       <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
     </div>
-    <div class="card-wrap" id="card-wrap" class:rising>
+    <div class="card-wrap" id="card-wrap">
+      <!-- 牌堆里等待的下一张：恒在顶层卡下方同一位置（卡背朝上），
+           顶层卡划走时自然露出，再由 {#key} 重建的 Card 原位接替并自动翻面 -->
+      <div class="card next-back" aria-hidden="true">
+        <div class="card__translater">
+          <div class="card__rotator">
+            <img class="card__back" src="/img/card-back.webp" alt="" width="660" height="921" />
+          </div>
+        </div>
+      </div>
       {#key keyId}
         <Card
           card={cur}

@@ -229,10 +229,10 @@
     springScaleSub = springScale.subscribe((v) => { pop.scale = v })
     springRotateSub = springRotateDelta.subscribe((v) => { pop.rx = v.x; pop.ry = v.y })
     rafId = requestAnimationFrame(tick)
-    // 划走后新卡升起：等升起动画接完再自动翻面（节奏连贯）；
+    // 划走后新卡由底下候着的卡背原位接替：短暂停顿（让"下一张已露出"被感知）后自动翻面；
     // 动效减弱时直接瞬切（flip），正常则播 Fallout 式快速翻转（flipAnimated）
     if (autoFlip) {
-      flipTimer = setTimeout(reduce ? flip : flipAnimated, reduce ? 0 : 380)
+      flipTimer = setTimeout(reduce ? flip : flipAnimated, reduce ? 0 : 200)
     }
     return () => {
       cancelAnimationFrame(rafId)

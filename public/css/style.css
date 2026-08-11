@@ -97,6 +97,22 @@ body {
   z-index: 1;
 }
 
+/* ── 牌堆里等待的下一张：恒在顶层卡下方同一位置（卡背朝上）──
+   顶层卡划走时它自然露出（牌堆本来就有的下一张，不凭空冒出），
+   露出后由 {#key} 重建的 Card 原位接替并自动翻面 */
+.stack .card-wrap .next-back {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.stack .card-wrap .next-back .card__rotator {
+  pointer-events: none; /* 覆盖 base.css .card__rotator 的 auto：纯装饰不接事件 */
+}
+.stack .card-wrap .next-back .card__back {
+  transform: rotateY(0deg); /* 同 loading 态：背面正面朝上，不镜像 */
+}
+
 /* 装饰牌堆：8 层卡背扇形，从顶层卡下沿露出 */
 .stack__fan {
   position: absolute;
@@ -133,15 +149,6 @@ body {
   0%   { transform: scale(1); }
   40%  { transform: scale(0.92) rotate(-2deg); }
   100% { transform: scale(1); }
-}
-
-/* 新卡升到顶层：轻微升起入场 */
-.card-wrap.rising {
-  animation: card-rise 0.35s ease-out;
-}
-@keyframes card-rise {
-  0%   { transform: translateY(16px) scale(0.96); opacity: 0.4; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ── 翻卡效果（点一下翻开，pokemon-cards-css popover 移植）──
@@ -214,8 +221,7 @@ body {
   .card.spring {
     transition: none;
   }
-  .stack.pop .stack__fan,
-  .card-wrap.rising {
+  .stack.pop .stack__fan {
     animation: none;
   }
 }
