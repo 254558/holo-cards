@@ -110,10 +110,12 @@
     wrap.classList.add('rising')
   }
 
-  /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步） */
+  /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步）。
+     "作者"两字在方框外，方框里只放卡牌名 */
   const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const authorBox = () => {
     labelEl.innerHTML = ''
+    labelEl.appendChild(document.createTextNode('作者 · '))
     const box = document.createElement('span')
     box.className = 'author-box'
     labelEl.appendChild(box)
@@ -142,7 +144,7 @@
     faceUp = true
     busy = true
     card.classList.remove('loading')
-    shuffleTo(authorBox(), `作者 · ${cur.label}`)
+    shuffleTo(authorBox(), cur.label)
     setTimeout(() => { busy = false }, reduce ? 0 : 500) // 动画期间防连点
   }
 
