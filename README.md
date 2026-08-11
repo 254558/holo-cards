@@ -1,6 +1,6 @@
 # Holo Cards · 全息卡牌堆
 
-纯静态单页（HTML + CSS + 原生 JS，无框架、无构建）：屏幕中央一堆全息卡牌，**点一下翻面查看，不喜欢右划划走**。
+Svelte 单页应用（Vite 3 + Svelte 3 SPA，与桌面 pokemon-cards-css 同栈）：屏幕中央一堆全息卡牌，**点一下翻面查看，不喜欢右划划走**。
 
 ## 交互
 - 背景：**故障终端**（CRT 绿色数字网格，扫描线/位移抖动/鼠标波纹/载入淡入，移植自 [vue-bits FaultyTerminal](https://vue-bits.dev/backgrounds/faulty-terminal)，零依赖原生 WebGL；`prefers-reduced-motion` 时渲染一帧静态网格）
@@ -14,14 +14,22 @@
 
 ## 文件
 ```
-index.html            单屏 stage：中央牌堆（fan 层 + 顶层卡）+ 标签
-css/style.css         牌堆布局 + 扇形 + 翻卡/飞走/弹回动画 + 滑动变量 + 背景层级
-css/cards*.css        全息效果（源自 pattern-library，未改动）
-js/main.js            38 张卡数据 + 洗牌状态机 + 点按/划走手势 + 视差驱动
-js/faulty-terminal.js 故障终端背景（vue-bits FaultyTerminal 移植，零依赖 WebGL）
-patterns/             p01–p38.webp 卡面
-img/                  共享纹理（卡背 card-back.webp 等）
+index.html            Vite 入口：CSS link（全部 24 个效果文件）+ #app + /src/main.js
+vite.config.js        仅 svelte() 插件（同桌面项目）
+public/css/           style.css（牌堆布局 + 扇形 + 翻卡/飞走/弹回动画 + 滑动变量）+ cards*.css（全息效果，源自 pattern-library，未改动）
+public/img/           共享纹理（卡背 card-back.webp 等）
+public/patterns/      p01–p38.webp 卡面
+src/main.js           挂载 App 到 #app
+src/App.svelte        页面：故障终端背景 + 牌堆 + 38 张卡洗牌状态机 + 作者标签乱序
+src/lib/components/Card.svelte          单卡：翻面 + 弹出 360° 弹簧（svelte/motion）+ 右划划走手势
+src/lib/components/FaultyTerminal.svelte 故障终端背景（vue-bits FaultyTerminal 移植，零依赖 WebGL）
+src/lib/data/cards.js 38 张卡数据
+src/lib/helpers/Math.js 从桌面项目拷贝（round/clamp/adjust）
 ```
 
 ## 本地预览
-任意静态服务器即可，例如 `npx serve .` 或 `python3 -m http.server 8080`。
+```bash
+npm install   # svelte ^3.52 / vite ^3.2 / @sveltejs/vite-plugin-svelte ^1.1（同桌面）
+npm run dev   # 开发服务器
+npm run build # 构建到 dist/（public/ 原样拷入，CSS 相对路径不变）
+```
