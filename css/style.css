@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════
+   全息卡 · 手机展示页 —— 布局与默认视差变量
+   （卡片本体效果全部来自 css/cards*.css，本文件只管页面布局）
+   ═══════════════════════════════════════════ */
+
+:root {
+  /* 视差默认值（原 Card.svelte 内联 :root）：idle 时由 js/main.js 驱动游移 */
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --card-scale: 1;
+  --card-opacity: 0.55;
+  --translate-x: 0px;
+  --translate-y: 0px;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --background-x: var(--pointer-x);
+  --background-y: var(--pointer-y);
+  --pointer-from-center: 0;
+  --pointer-from-top: 0.5;
+  --pointer-from-left: 0.5;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #05060a;
+  color: #fff;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 单列竖排：手机优先，桌面居中限宽 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(48px, calc(env(safe-area-inset-bottom) + 24px));
+}
+
+/* 卡宽：手机 ~88vw，平板/桌面封顶 400px（原图纸库 3 列大卡片在手机上太挤，竖排单卡更合展示用途） */
+.card {
+  width: min(88vw, 400px);
+}
+
+.card__rotator {
+  width: 100%;
+}
+
+/* 减少滚动条占用：移动端页面不必看到滚动条 */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
