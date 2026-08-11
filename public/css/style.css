@@ -207,11 +207,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 0.7rem;
+  padding: 0.3rem 0.6rem;
   border: 2px solid #fff;
   border-radius: 5px;
   font-family: var(--font-heiti);
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
