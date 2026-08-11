@@ -25,7 +25,6 @@
   let keyId = 0              // {#key} 强制重建 Card 实例 → 卡背朝上 + 每张首次 360°
   let autoFlip = false       // 划走后新卡升起：自动翻到正面
   let advancing = false      // 划走后等待飞走过渡的 480ms 内防重复推进
-  let pop = false            // 牌堆"少一张"抖动
 
   let labelEl
 
@@ -48,16 +47,7 @@
         autoFlip = true
       }
       keyId += 1
-      animateNewCard()
     }, reduce ? 0 : 480)
-  }
-
-  /* 牌堆抖一下（新卡原位接替，不再升起入场：下一张一直候在底下，露出即接替） */
-  const animateNewCard = () => {
-    pop = false
-    requestAnimationFrame(() => {
-      pop = true
-    })
   }
 
   /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步）。
@@ -108,7 +98,7 @@
 
 <main class="stage">
   <!-- 中央牌堆：背后 8 层卡背扇形（装饰），顶层是真实可交互卡 -->
-  <div class="stack" id="stack" class:pop>
+  <div class="stack" id="stack">
     <div class="stack__fan" aria-hidden="true">
       <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
     </div>

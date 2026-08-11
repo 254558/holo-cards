@@ -147,16 +147,6 @@ body {
 .stack__fan i:nth-child(7) { transform: rotate(9deg)   translateY(24px) translateX(10px); }
 .stack__fan i:nth-child(8) { transform: rotate(0deg)   translateY(30px); }
 
-/* 划走/重置瞬间牌堆"少一张"的抖动 */
-.stack.pop .stack__fan {
-  animation: fan-pop 0.4s ease;
-}
-@keyframes fan-pop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(0.92) rotate(-2deg); }
-  100% { transform: scale(1); }
-}
-
 /* ── 翻卡效果（点一下翻开，pokemon-cards-css popover 移植）──
    翻转交给外层 .card__rotator 的 360° 弹簧旋转（--pop-rot，js 驱动）：
    移除 loading 时卡背瞬切到 rotateY(180)，不再自己做 0°→180° 过渡；
@@ -235,8 +225,5 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .card.spring {
     transition: none;
-  }
-  .stack.pop .stack__fan {
-    animation: none;
   }
 }
