@@ -1,9 +1,8 @@
 <!-- 全息卡 · 翻卡页（Svelte 版）
-     页面 = 故障终端背景 + 中央牌堆（fan 装饰层 + 顶层真卡）+ 作者标签。
+     页面 = 纯色背景 + 中央牌堆（fan 装饰层 + 顶层真卡）+ 作者标签。
      牌堆状态机：38 张洗牌、右划划走换卡、划完自动洗牌重置。 -->
 <script>
   import Card from './lib/components/Card.svelte'
-  import FaultyTerminal from './lib/components/FaultyTerminal.svelte'
   import { CARDS } from './lib/data/cards.js'
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -103,8 +102,6 @@
     shuffleTo(ensureAuthor(), e.detail || (cur && cur.label))
   }
 </script>
-
-<FaultyTerminal />
 
 <main class="stage">
   <!-- 中央牌堆：背后 8 层卡背扇形（装饰），顶层是真实可交互卡 -->

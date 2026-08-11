@@ -28,27 +28,12 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #05060a;
+  background: #94a3b8;
   color: #fff;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
-}
-
-/* ── 故障终端背景（vue-bits FaultyTerminal 移植）──
-   固定全屏垫底；pointer-events:none 不拦截卡牌手势；WebGL canvas 由 js 填充 */
-.bg-terminal {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: #05060a;
-}
-.bg-terminal canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
 }
 
 /* 单屏舞台：整页就是牌堆，不需要滚动 */
