@@ -122,6 +122,6 @@
     </div>
   </div>
 
-  <!-- 标签：卡背提示 / 翻面后的推荐名 -->
-  <p class="draw-label" id="draw-label" bind:this={labelEl}>点一下翻面 · 不喜欢右划划走</p>
+  <!-- 标签：初始无提示文字（空占位保持布局），翻面后才出现作者名字方框 -->
+  <p class="draw-label" id="draw-label" bind:this={labelEl}></p>
 </main>
