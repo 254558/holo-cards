@@ -192,18 +192,17 @@ body {
   font-weight: 600;
 }
 
-/* 作者标签态：与牌堆同宽、左对齐 → "AUTHOR ·" 的左边定在卡左边不动，
-   只有作者名字方框的右边随名字长度伸缩；整体比默认标签低一点；
-   "AUTHOR" 用与方框相同的黑体字体 */
+/* 作者标签态：与牌堆同宽、居中 → 方框左右两边都随名字长度伸缩；
+   整体比默认标签低一点；黑体与方框一致 */
 .draw-label.label-author {
   width: var(--stack-w);
-  text-align: left;
+  text-align: center;
   margin-top: 10px;
   font-family: var(--font-heiti);
 }
 
 /* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 乱序落定）。
-   黑体（无衬线），不设固定宽度 → 框宽随名字长度自适应，框的右边随作者名字长短伸缩 */
+   黑体（无衬线），不设固定宽度 → 框宽随名字长度自适应，左右两边随名字长短伸缩 */
 .author-box {
   display: inline-flex;
   align-items: center;

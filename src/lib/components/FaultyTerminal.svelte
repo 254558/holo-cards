@@ -28,9 +28,10 @@
     const offs = []
 
     try {
-      // ── 配置（= vue-bits FaultyTerminal demo 预览参数）──
+      // ── 配置（= vue-bits FaultyTerminal demo 预览参数；手机窄屏 scale 调大一点，网格更密）──
+      const MOBILE_SCREEN = window.innerWidth < 640
       const CFG = {
-        scale: 1.5,           // 图案缩放
+        scale: MOBILE_SCREEN ? 2.0 : 1.5,  // 图案缩放
         gridMul: [2, 1],      // 字形网格密度 [x, y]
         digitSize: 1.2,       // 字形大小
         timeScale: 0.5,       // 动画速度

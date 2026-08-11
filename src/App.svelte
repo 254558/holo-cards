@@ -51,15 +51,14 @@
   }
 
   /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步）。
-     "AUTHOR"字样在方框外：结构只建一次、复用（不清空重建）；
-     标签进入作者态加 .label-author（与牌堆同宽左对齐）→ 左边定住，只有框的右边随名字伸缩 */
+     只有方框（无 "AUTHOR" 前缀）：结构只建一次、复用（不清空重建）；
+     标签进入作者态加 .label-author（与牌堆同宽居中）→ 方框左右两边都随名字长度伸缩 */
   const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const ensureAuthor = () => {
     const existing = labelEl.querySelector('.author-box')
     if (existing) return existing
     labelEl.innerHTML = ''
     labelEl.classList.add('label-author')
-    labelEl.appendChild(document.createTextNode('AUTHOR · '))
     const box = document.createElement('span')
     box.className = 'author-box'
     labelEl.appendChild(box)
@@ -88,7 +87,7 @@
     labelEl.textContent = text
   }
 
-  /* 卡翻到正面 → 标签换成"AUTHOR · 名称"（乱序落定） */
+  /* 卡翻到正面 → 标签换成名字方框（乱序落定） */
   const onFlip = (e) => {
     shuffleTo(ensureAuthor(), e.detail || (cur && cur.label))
   }
