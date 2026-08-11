@@ -199,14 +199,6 @@ body {
   color: #fff;
   font-weight: 600;
 }
-.deck-hint {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.45);
-  min-height: 1.4em;
-  text-align: center;
-}
 
 /* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {

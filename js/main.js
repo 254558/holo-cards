@@ -60,7 +60,6 @@
   const rot = card.querySelector('.card__rotator')
   const frontImg = card.querySelector('.card__front img')
   const labelEl = document.getElementById('draw-label')
-  const countEl = document.getElementById('deck-count')
 
   const imgNum = (c) => (c.img.match(/p(\d+)/) || [1])[1]
 
@@ -103,7 +102,6 @@
     faceUp = false
     card.classList.add('loading')
     card.classList.remove('flipping')
-    countEl.textContent = `剩余 ${order.length - cursor}`
     // 牌堆抖一下 + 新卡升起
     stack.classList.remove('pop')
     void stack.offsetWidth
@@ -121,7 +119,7 @@
     card.classList.remove('loading')
     card.classList.add('flipping')
     wrap.classList.add('flipping')
-    labelEl.innerHTML = `今日推荐 · <strong>${cur.label}</strong>`
+    labelEl.innerHTML = `作者 · <strong>${cur.label}</strong>`
     setTimeout(() => {
       card.classList.remove('flipping')
       wrap.classList.remove('flipping')
@@ -145,7 +143,6 @@
         shuffle()
         setCard(CARDS[order[0]])
         labelEl.textContent = '看完了 · 已重新洗牌'
-        countEl.textContent = `剩余 ${order.length}`
         faceUp = false
         card.classList.add('loading')
         card.classList.remove('flipping')
