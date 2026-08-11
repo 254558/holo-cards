@@ -86,6 +86,10 @@ body {
 .card__rotator {
   width: 100%;
   touch-action: none; /* 拖动划卡不让浏览器插手（本页无滚动） */
+  /* 弹出 360° 翻转（pokemon-cards-css popover）叠加在视差倾斜之上：
+     base.css 的 .card__translater 已接好 --card-scale/--translate-*（放大+抬升），
+     这里只补 --pop-rot 这一环，默认 0deg 不影响原行为 */
+  transform: rotateY(calc(var(--rotate-x) + var(--pop-rot, 0deg))) rotateX(var(--rotate-y));
 }
 
 .stack .card-wrap {
@@ -140,16 +144,12 @@ body {
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ── 翻卡效果（点一下翻开）──
-   与抽卡页/以前项目一致：移除 loading 时卡背 0°→180° 平滑翻转（0.45s），
-   卡面同步 0.33s 淡入（base.css 自带过渡）；loading 恢复时卡背无过渡瞬切回正面。
-   backface hidden：卡背翻过 90° 背面朝前即隐身，不会把镜像卡背露出来 */
+/* ── 翻卡效果（点一下翻开，pokemon-cards-css popover 移植）──
+   翻转交给外层 .card__rotator 的 360° 弹簧旋转（--pop-rot，js 驱动）：
+   移除 loading 时卡背瞬切到 rotateY(180)，不再自己做 0°→180° 过渡；
+   backface visible（同 base.css/原版）→ 旋转到远侧时露出正确卡背，不会穿模 */
 .card__back {
-  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.2);
-  backface-visibility: hidden;
-}
-.card.loading .card__back {
-  transition: none;
+  backface-visibility: visible;
 }
 
 /* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
@@ -194,9 +194,6 @@ body {
 
 /* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
-  .card__back {
-    transition: none;
-  }
   .card.spring {
     transition: none;
   }

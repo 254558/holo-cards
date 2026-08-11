@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════
    全息卡 · 翻卡页
-   - 中央牌堆：顶层卡卡背朝上，点一下翻到正面（卡背平滑翻转 + 卡面淡入）
+   - 中央牌堆：顶层卡卡背朝上，点一下翻到正面并弹出（pokemon-cards-css popover 移植：
+     弹簧放大到视口适配 ≤1.75× + 首次 360° 翻转 + 白边发光；再点弹回，保持正面）
    - 右划（超过卡宽 35%）= 不喜欢划走，下一张升到顶层并自动翻到正面；其他方向/短划弹回
-   - 翻开后保持正面，只能右划换下一张；38 张划完自动洗牌重置
+   - 38 张划完自动洗牌重置
    - 空闲游移扫光 + 触摸/鼠标拖动时扫光跟随指针
    - prefers-reduced-motion：无动画直接切换
    ═══════════════════════════════════════════ */
@@ -141,14 +142,64 @@
     }, 35)
   }
 
-  /* 点一下翻面：移除 loading → 卡背 0.45s 翻转 + 卡面淡入；翻正后再点保持正面 */
+  /* 点一下翻面（移除 loading → 卡背瞬切 + 卡面淡入）；已正面/动画中返回 false */
   const flip = () => {
-    if (busy || faceUp) return
+    if (busy || faceUp) return false
     faceUp = true
     busy = true
     card.classList.remove('loading')
     shuffleTo(ensureAuthor(), cur.label)
     setTimeout(() => { busy = false }, reduce ? 0 : 500) // 动画期间防连点
+    return true
+  }
+
+  /* ── 弹出（pokemon-cards-css popover 移植）──
+     点击后整卡弹簧放大到视口适配（≤1.75）+ 首次 360° 翻转 + .active 白边发光；
+     再点 retreat 弹回（弹簧反向，保持正面）。缩放/旋转目标由 rAF 里的二阶阻尼弹簧收敛，
+     base.css 已把 --card-scale 接到 .card__translater、--pop-rot 经 style.css 接到 .card__rotator */
+  const POP = { k: 80, c: 6 } // ω≈8.9 ζ≈0.34：约 1.5s 落定，带一次过冲（近似原版 spring 手感）
+  const pop = { scale: 1, vScale: 0, rot: 0, vRot: 0 }
+  const popTarget = { scale: 1, rot: 0 }
+  let popped = false
+  let firstPop = true // 每张卡首次弹出才转 360°（同原版：每张卡各转一次）
+
+  const popover = () => {
+    const rect = card.getBoundingClientRect()
+    const scaleW = (window.innerWidth / rect.width) * 0.9
+    const scaleH = (window.innerHeight / rect.height) * 0.9
+    popTarget.scale = Math.min(scaleW, scaleH, 1.75)
+    if (firstPop) {
+      popTarget.rot = 360
+      firstPop = false
+    }
+    card.classList.add('active')
+    popped = true
+  }
+
+  const retreat = () => {
+    popTarget.scale = 1
+    popTarget.rot = 0
+    card.classList.remove('active')
+    popped = false
+  }
+
+  /* 划走后硬重置弹出状态（下一张卡回到原尺寸，首次点击重新 360°） */
+  const resetPop = () => {
+    pop.scale = 1; pop.vScale = 0; pop.rot = 0; pop.vRot = 0
+    popTarget.scale = 1; popTarget.rot = 0
+    popped = false
+    firstPop = true
+    card.classList.remove('active')
+    card.style.setProperty('--card-scale', '1')
+    card.style.setProperty('--pop-rot', '0deg')
+  }
+
+  /* 点一下：卡背朝上 → 翻面 + 弹出；已弹出 → 弹回；正面未弹出 → 再弹（无 360°） */
+  const onTap = () => {
+    if (popped) { retreat(); return }
+    if (!faceUp && !flip()) return
+    if (reduce) return // 动效减弱：只翻面不弹出
+    popover()
   }
 
   /* 右划过阈值：飞向右侧 → 下一张（划完则洗牌重置） */
@@ -161,6 +212,7 @@
     card.style.opacity = '0'
     setTimeout(() => {
       card.style.transition = ''
+      resetPop() // 下一张卡原尺寸、卡背朝上、首次点击重新 360°
       cursor += 1 // 当前顶层这张已划走
       if (cursor >= order.length) {
         // 全部划完：洗牌重置，新洗后的第一张升到顶层（卡背朝上）
@@ -194,7 +246,7 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 
   rot.addEventListener('pointerdown', (e) => {
-    if (busy) return
+    if (busy && !popped) return // 已弹出时允许再点（弹回），翻面/划走动画中仍锁定
     pressed = true
     downX = e.clientX
     downY = e.clientY
@@ -229,11 +281,12 @@
   const release = (tapped) => {
     settle()
     if (tapped) {
-      flip() // 静止按下即抬起 → 翻面（不设时限：慢速点按也算点按）
+      onTap() // 静止按下即抬起 → 翻面 + 弹出（或已弹出 → 弹回）
       return
     }
     if (!dragging) return
-    const w = card.getBoundingClientRect().width
+    // 用未缩放的卡宽做阈值：弹出放大后拖动距离门槛不跟着变大
+    const w = wrap.getBoundingClientRect().width
     if (dragX > w * SWIPE_RATIO) {
       dismiss() // 右划过阈值 → 划走
     } else {
@@ -246,12 +299,12 @@
   }
 
   rot.addEventListener('pointerup', () => {
-    if (busy) return
+    if (busy && !popped) return
     pressed = false
     release(!dragging)
   })
   rot.addEventListener('pointercancel', () => {
-    if (busy) return
+    if (busy && !popped) return
     pressed = false
     release(false)
   })
@@ -261,8 +314,26 @@
 
   /* ── 视差（单张顶层卡）：空闲游移扫光 + 拖动时扫光跟随指针 ── */
   const s = { touching: false, tx: 0.5, ty: 0.5, rx: 0, ry: 0 }
+  let lastT = 0
+
+  /* 二阶阻尼弹簧半步积分（近似 svelte/motion spring）：a = k·(target-x) − c·v */
+  const stepSpring = (v, x, target, dt) => {
+    const a = POP.k * (target - x) - POP.c * v
+    v += a * dt
+    x += v * dt
+    return [x, v]
+  }
 
   const apply = (t) => {
+    // 弹出弹簧：向 popTarget 收敛（点击弹出 / 再点弹回 / 划走硬重置）
+    const dt = Math.min(0.05, lastT ? (t - lastT) / 1000 : 0.016)
+    lastT = t
+    let [sc, vsc] = stepSpring(pop.vScale, pop.scale, popTarget.scale, dt)
+    let [ro, vro] = stepSpring(pop.vRot, pop.rot, popTarget.rot, dt)
+    pop.scale = sc; pop.vScale = vsc; pop.rot = ro; pop.vRot = vro
+    card.style.setProperty('--card-scale', sc.toFixed(4))
+    card.style.setProperty('--pop-rot', `${ro.toFixed(2)}deg`)
+
     let px = s.tx
     let py = s.ty
     if (!s.touching && !reduce) {
