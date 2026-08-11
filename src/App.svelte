@@ -6,6 +6,13 @@
   import FaultyTerminal from './lib/components/FaultyTerminal.svelte'
   import { CARDS } from './lib/data/cards.js'
 
+  /* 预加载全部 38 张卡图：翻面/划走自动翻面时图案立即可用，
+     避免"全息效果先出来、图案还在加载"的错位（慢网络下尤其明显） */
+  for (const c of CARDS) {
+    const i = new Image()
+    i.src = c.img
+  }
+
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 
   /* ── 牌堆：Fisher-Yates 洗牌；cursor = 已划走张数，顶层卡 = order[cursor] ── */

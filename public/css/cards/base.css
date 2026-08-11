@@ -21,7 +21,9 @@
   --card-aspect: 0.718;
   --card-radius: 4.55% / 3.5%;
   --card-edge: hsl(47, 100%, 78%);
-  --card-back: hsl(205, 100%, 25%);
+  /* 卡背兜底色：原 Pokemon 卡背蓝 hsl(205,100%,25%) 与 card-back.webp 实际
+     深灰图不符——图片未就绪时露出蓝色"闪一下"。改成与卡背图一致的深灰 */
+  --card-back: hsl(0, 0%, 18%);
   --card-glow: hsl(175, 100%, 90%);
 
   /* 纹理图：用 ../../img/ 相对路径（相对 css/cards/），
