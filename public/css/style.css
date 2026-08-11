@@ -193,11 +193,11 @@ body {
 }
 
 /* 作者标签态：与牌堆同宽、居中 → 方框左右两边都随名字长度伸缩；
-   整体比默认标签低一点；黑体与方框一致 */
+   整体比默认标签低一些；黑体与方框一致 */
 .draw-label.label-author {
   width: var(--stack-w);
   text-align: center;
-  margin-top: 10px;
+  margin-top: 60px;
   font-family: var(--font-heiti);
 }
 
