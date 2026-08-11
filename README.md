@@ -3,7 +3,7 @@
 Svelte 单页应用（Vite 3 + Svelte 3 SPA，与桌面 pokemon-cards-css 同栈）：屏幕中央一堆全息卡牌，**点一下翻面查看，不喜欢右划划走**。
 
 ## 交互
-- 背景：纯色 **#94a3b8**（原故障终端 WebGL 背景已移除）
+- 背景：**故障终端**（CRT 数字网格，扫描线/位移抖动/鼠标波纹/载入淡入，移植自 [vue-bits FaultyTerminal](https://vue-bits.dev/backgrounds/faulty-terminal)，零依赖原生 WebGL；颜色 **#94a3b8**；`prefers-reduced-motion` 时渲染一帧静态网格）
 - 屏幕中央一堆牌（顶层是真卡、背后 8 层卡背扇形），底部提示
 - **点一下卡** → 翻到正面并**弹出**（pokemon-cards-css 点击动画移植：整卡弹簧放大到视口适配 ≤1.75× + 首次 360° 翻转 + 白边发光，约 1.5s 落定带过冲），显示"AUTHOR · 名称稀有度"（白框方框 + 乱序落定，同 pattens 标题旁效果；框宽随名字长度自适应）
 - **再点一下（正面）** → 弹簧弹回原位，保持正面；再点可再次弹出（无 360°）
@@ -22,7 +22,7 @@ public/patterns/      p01–p38.webp 卡面
 src/main.js           挂载 App 到 #app
 src/App.svelte        页面：故障终端背景 + 牌堆 + 38 张卡洗牌状态机 + 作者标签乱序
 src/lib/components/Card.svelte          单卡：翻面 + 弹出 360° 弹簧（svelte/motion）+ 右划划走手势
-src/lib/components/FaultyTerminal.svelte 故障终端背景（未启用，保留备用）
+src/lib/components/FaultyTerminal.svelte 故障终端背景（vue-bits FaultyTerminal 移植，零依赖 WebGL，颜色 #94a3b8）
 src/lib/data/cards.js 38 张卡数据
 src/lib/helpers/Math.js 从桌面项目拷贝（round/clamp/adjust）
 ```

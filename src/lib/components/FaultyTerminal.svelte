@@ -1,7 +1,7 @@
 <!-- 故障终端背景 —— 移植自 vue-bits FaultyTerminal（ogl 全屏着色器）
      零依赖 WebGL：单个全屏三角形 + 片段着色器，渲染 CRT 终端数字网格
      （扫描线 / 位移抖动 / 鼠标波纹 / 载入淡入）。
-     参数取 vue-bits demo 预览默认：绿色荧光 #A7EF9E，brightness 0.6。
+     参数取 vue-bits demo 预览默认：颜色 #94a3b8（灰蓝），brightness 0.6。
      prefers-reduced-motion：只渲染一帧静态网格，不跑动画。
      运行状态写入容器 data-bg-* 属性（只读验证用，不污染 window）。 -->
 <script>
@@ -40,7 +40,7 @@
         chromaticAberration: 0,
         dither: 0,
         curvature: 0.1,       // CRT 桶形畸变
-        tint: '#A7EF9E',      // 荧光绿（demo 预览色）
+        tint: '#94a3b8',      // 灰蓝（原荧光绿 #A7EF9E）
         mouseReact: true,
         mouseStrength: 0.5,
         pageLoadAnimation: true,
