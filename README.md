@@ -3,6 +3,7 @@
 纯静态单页（HTML + CSS + 原生 JS，无框架、无构建）：屏幕中央一堆全息卡牌，**点一下翻面查看，不喜欢右划划走**。
 
 ## 交互
+- 背景：**故障终端**（CRT 绿色数字网格，扫描线/位移抖动/鼠标波纹/载入淡入，移植自 [vue-bits FaultyTerminal](https://vue-bits.dev/backgrounds/faulty-terminal)，零依赖原生 WebGL；`prefers-reduced-motion` 时渲染一帧静态网格）
 - 屏幕中央一堆牌（顶层是真卡、背后 8 层卡背扇形），底部提示
 - **点一下卡** → 翻到正面（卡背 0.45s 平滑翻转 + 卡面淡入，同抽卡页效果），显示"作者 · 名称稀有度"（白框方框 + 乱序落定，同 pattens 标题旁效果）
 - **翻开后保持正面**：再点无反应，只能右划换下一张
@@ -13,12 +14,13 @@
 
 ## 文件
 ```
-index.html        单屏 stage：中央牌堆（fan 层 + 顶层卡）+ 标签 + 计数
-css/style.css     牌堆布局 + 扇形 + 翻卡/飞走/弹回动画 + 滑动变量
-css/cards*.css    全息效果（源自 pattern-library，未改动）
-js/main.js        38 张卡数据 + 洗牌状态机 + 点按/划走手势 + 视差驱动
-patterns/         p01–p38.webp 卡面
-img/              共享纹理（卡背 card-back.webp 等）
+index.html            单屏 stage：中央牌堆（fan 层 + 顶层卡）+ 标签
+css/style.css         牌堆布局 + 扇形 + 翻卡/飞走/弹回动画 + 滑动变量 + 背景层级
+css/cards*.css        全息效果（源自 pattern-library，未改动）
+js/main.js            38 张卡数据 + 洗牌状态机 + 点按/划走手势 + 视差驱动
+js/faulty-terminal.js 故障终端背景（vue-bits FaultyTerminal 移植，零依赖 WebGL）
+patterns/             p01–p38.webp 卡面
+img/                  共享纹理（卡背 card-back.webp 等）
 ```
 
 ## 本地预览

@@ -35,6 +35,8 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <!-- 故障终端背景（vue-bits FaultyTerminal 移植，固定全屏，不挡交互） -->
+  <div class="bg-terminal" id="bg-terminal" aria-hidden="true"></div>
   <main class="stage">
     <!-- 中央牌堆：背后 8 层卡背扇形（装饰），顶层是真实可交互卡 -->
     <div class="stack" id="stack">
@@ -70,6 +72,7 @@
     <!-- 标签：卡背提示 / 翻面后的推荐名 -->
         <p class="draw-label" id="draw-label">点一下翻面 · 不喜欢右划划走</p>
       </main>
+  <script src="js/faulty-terminal.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
