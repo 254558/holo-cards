@@ -124,16 +124,24 @@ body {
 }
 
 /* ── 翻卡效果（点一下从卡背翻到正面）── */
-/* 卡背 0°→180° 带过冲缓动 + 卡面同步淡入（"之前的翻卡效果"，加节奏） */
+/* 卡背 0°→180° 带过冲缓动；翻过 90° 后背面朝前，backface 转 hidden → 立即隐身，
+   不会把镜像卡背露在正面上方（穿模）；180° 后停在 front 之后 1px，被正面完全盖住 */
+.card__back {
+  backface-visibility: hidden;
+}
 .card.flipping .card__back {
   transition: transform 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
 }
 .card.flipping .card__front {
+  transition: none; /* 压掉 base.css 的 opacity 0.33s 淡入，淡入时机完全交给 front-in */
   animation: front-in 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
 }
+/* 卡面等卡背转过 90°（约 40%）再开始淡入，避免与卡背叠影 */
 @keyframes front-in {
-  0%  { opacity: 0; }
-  50% { opacity: 1; }
+  0%   { opacity: 0; }
+  40%  { opacity: 0; }
+  62%  { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 /* 翻转整卡缩放脉冲 + 外发光（drop-shadow 独立于 box-shadow，可叠） */
@@ -164,7 +172,7 @@ body {
   pointer-events: none;
 }
 .card.flipping .card__flip-sweep {
-  animation: flip-sweep 0.65s ease-out;
+  animation: flip-sweep 0.6s ease-out 0.26s; /* 等卡面开始淡入（front-in 40%）再扫过 */
 }
 @keyframes flip-sweep {
   0%   { transform: translateX(-130%); opacity: 0; }
