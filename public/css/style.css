@@ -152,6 +152,23 @@ body {
   backface-visibility: visible;
 }
 
+/* ── 自动翻面（划走后新卡 卡背→正面）：Fallout 卡牌翻卡动画移植 ──
+   翻转挂在 back/front 外层 .card__flip 上，绕开 rotator 由 --rotate-* 驱动的
+   视差/弹出变换；keyframes 同参考：0.275s linear，中点 -10° Z 轴摆一下 */
+.card__flip {
+  overflow: visible;             /* 覆盖 base.css .card__rotator * 的 overflow:hidden，保住 preserve-3d */
+  transform-style: preserve-3d;
+}
+.card__flip.flipping { animation: card-flip 0.275s linear forwards; }
+@keyframes card-flip {
+  0%   { transform: rotateZ(0deg) rotateY(180deg); }
+  50%  { transform: rotateZ(-10deg) rotateY(90deg); }
+  100% { transform: rotateZ(0deg) rotateY(0deg); }
+}
+/* 翻转中背面临时 backface-hidden：前半程背面正面朝外（正确可见），后半程前片盖住背面，
+   避免前片淡入半透明时镜像背面透出来；翻转结束恢复 visible（供 360° 弹出的远侧背面） */
+.card__flip.flipping .card__back { backface-visibility: hidden; }
+
 /* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
 .card.spring {
   transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);

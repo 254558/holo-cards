@@ -26,6 +26,8 @@
   let popped = false
   let firstPop = true     // 每张卡首次弹出才转 360°（同原版每卡各转一次）
   let loading = true
+  let autoflipping = false   // 划走后新卡自动翻面：.card__flip 快速 180°→0° 翻转动画中
+  let safetyTimer = null     // 翻转动画 animationend 的兜底清理
 
   /* svelte/motion spring（同桌面 popover 手感：慢速带过冲，约 1.5s 落定） */
   const springPopoverSettings = { stiffness: 0.033, damping: 0.45 }
@@ -54,6 +56,24 @@
     faceUp = true
     loading = false
     dispatch('flip', card && card.label)
+  }
+
+  /* 划走后自动翻面（Fallout 卡牌翻卡动画移植）：back/front 外层 .card__flip 快速 180°→0°
+     翻转（中点 -10° Z 轴摆动，0.275s），背面临时 backface-hidden 防镜像透出；
+     只在 autoFlip 时用 —— 手动点按仍是 360° 弹簧弹出 */
+  const flipAnimated = () => {
+    if (faceUp) return
+    faceUp = true
+    loading = false
+    autoflipping = true
+    safetyTimer = setTimeout(() => { autoflipping = false }, 500) // animationend 兜底
+    dispatch('flip', card && card.label)
+  }
+
+  const onFlipEnd = (e) => {
+    if (e.animationName !== 'card-flip') return
+    if (safetyTimer !== null) clearTimeout(safetyTimer)
+    autoflipping = false
   }
 
   /* 弹出（pokemon-cards-css popover）：弹簧放大 + 首次 360° 翻转 + 发光 */
@@ -209,13 +229,15 @@
     springScaleSub = springScale.subscribe((v) => { pop.scale = v })
     springRotateSub = springRotateDelta.subscribe((v) => { pop.rx = v.x; pop.ry = v.y })
     rafId = requestAnimationFrame(tick)
-    // 划走后新卡升起：等升起动画接完再自动翻面（节奏连贯）
+    // 划走后新卡升起：等升起动画接完再自动翻面（节奏连贯）；
+    // 动效减弱时直接瞬切（flip），正常则播 Fallout 式快速翻转（flipAnimated）
     if (autoFlip) {
-      flipTimer = setTimeout(flip, reduce ? 0 : 380)
+      flipTimer = setTimeout(reduce ? flip : flipAnimated, reduce ? 0 : 380)
     }
     return () => {
       cancelAnimationFrame(rafId)
       if (flipTimer !== null) clearTimeout(flipTimer)
+      if (safetyTimer !== null) clearTimeout(safetyTimer)
       if (springScaleSub) springScaleSub()
       if (springRotateSub) springRotateSub()
     }
@@ -245,11 +267,13 @@
       on:pointercancel={onPointerCancel}
       on:pointerleave={onPointerLeave}
     >
-      <img class="card__back" src="/img/card-back.webp" alt="" width="660" height="921" />
-      <div class="card__front">
-        <img src={card && card.img} alt="" decoding="async" width="660" height="921" />
-        <div class="card__shine"></div>
-        <div class="card__glare"></div>
+      <div class="card__flip" class:flipping={autoflipping} on:animationend={onFlipEnd}>
+        <img class="card__back" src="/img/card-back.webp" alt="" width="660" height="921" />
+        <div class="card__front">
+          <img src={card && card.img} alt="" decoding="async" width="660" height="921" />
+          <div class="card__shine"></div>
+          <div class="card__glare"></div>
+        </div>
       </div>
     </div>
   </div>
