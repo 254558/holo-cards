@@ -3,6 +3,7 @@
        popover/retreat（首次 360° 翻转 + 视口适配 ≤1.75×）、.active 白边发光
      - 改动：img 用本地 /patterns/pNN.webp；点击改为"翻面+弹出"状态机；
        新增右划划走手势（--swipe-x/--swipe-rot，超卡宽 35% 飞走并派发 dismiss）；
+       弹出放大状态下拖动只跟随高光、卡片不随手指移动（先点一下弹回，再右划划走）；
        保留空闲 sine 游移扫光（原 holo main.js 视差逻辑）
      - 每张卡用 {#key} 重建实例 → 天然卡背朝上 + 每张首次 360°
      - prefers-reduced-motion：只翻面不弹出、无动画切换 -->
@@ -107,7 +108,8 @@
     popover()
   }
 
-  /* ── 手势：点按 = 翻面/弹出/弹回；拖动 = 划卡预览（右划超阈值划走，否则弹回） ── */
+  /* ── 手势：点按 = 翻面/弹出/弹回；拖动 = 划卡预览（右划超阈值划走，否则弹回）。
+        弹出放大时拖动只跟高光，不移动卡片 ── */
   const onPointerDown = (e) => {
     if (swiping) return
     pressed = true
@@ -125,8 +127,9 @@
     interacting = true
     s.tx = (e.clientX - r.left) / r.width
     s.ty = (e.clientY - r.top) / r.height
-    // 滑动跟手：仅按下状态，位移 ≥10px 进入拖动预览（位移 + 旋转）
-    if (!pressed || swiping) return
+    // 滑动跟手：仅按下状态，位移 ≥10px 进入拖动预览（位移 + 旋转）；
+    // 已弹出放大时只跟随高光（hover 扫光），卡片本体不随手指左右移动
+    if (!pressed || swiping || popped) return
     const dx = e.clientX - downX
     if (Math.abs(dx) + Math.abs(e.clientY - downY) >= 10) {
       dragging = true

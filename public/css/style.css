@@ -69,8 +69,9 @@ body {
 /* ── 牌堆：fan 层叠在顶层卡后面 ── */
 .stack {
   position: relative;
-  /* 卡宽：手机 ~88vw 封顶 400px；矮屏按高度收缩，保证卡+文字一屏放下 */
-  width: min(min(88vw, 400px), calc((100dvh - 230px) * 0.718));
+  /* 卡宽：手机 ~60vw 封顶 320px（比之前小，点按弹出放大比例更大、一眼可见）；
+     矮屏按高度收缩，保证卡+文字一屏放下 */
+  width: min(min(60vw, 320px), calc((100dvh - 230px) * 0.718));
 }
 
 .stack .card {
