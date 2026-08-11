@@ -2,6 +2,7 @@
      零依赖 WebGL：单个全屏三角形 + 片段着色器，渲染 CRT 终端数字网格
      （扫描线 / 位移抖动 / 鼠标波纹 / 载入淡入）。
      参数取 vue-bits demo 预览默认：颜色 #94a3b8（灰蓝），brightness 0.6。
+     shader 相对原版加了一处宽高比修正（uv.x 按 aspect/2 缩放），否则竖屏下网格会被纵向拉伸。
      prefers-reduced-motion：只渲染一帧静态网格，不跑动画。
      运行状态写入容器 data-bg-* 属性（只读验证用，不污染 window）。 -->
 <script>
@@ -158,7 +159,7 @@ float digit(vec2 p){
     float intensity = pattern(s * 0.1, q, r) * 1.3 - 0.03;
 
     if(uUseMouse > 0.5){
-        vec2 mouseWorld = uMouse * uScale;
+      vec2 mouseWorld = vec2(uMouse.x * uScale * (iResolution.z * 0.5), uMouse.y * uScale);
         float distToMouse = distance(s, mouseWorld);
         float mouseInfluence = exp(-distToMouse * 8.0) * uMouseStrength * 10.0;
         intensity += mouseInfluence;
@@ -246,7 +247,10 @@ void main() {
       uv = barrel(uv);
     }
 
-    vec2 p = uv * uScale;
+    // 宽高比修正（相对 vue-bits 原版的改动）：uv.x 按 aspect/2 缩放，字形格子随屏幕比例铺开、
+    // 任意比例下都接近正方形——否则竖屏手机（aspect≈0.46）网格会被纵向拉伸成细长条。
+    // 系数 0.5 对应 uGridMul [2,1] 的 2:1 网格密度（cellsX/cellsY = aspect）。
+    vec2 p = vec2(uv.x * uScale * (iResolution.z * 0.5), uv.y * uScale);
     vec3 col = getColor(p);
 
     if(uChromaticAberration != 0.0){
