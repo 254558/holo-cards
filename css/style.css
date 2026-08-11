@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
-   全息卡 · 手机展示页 —— 布局与默认视差变量
-   （卡片本体效果全部来自 css/cards*.css，本文件只管页面布局）
+   全息卡 · 抽卡页 —— 单屏布局 + 牌堆 + 抽卡动画
+   （卡片本体效果全部来自 css/cards*.css，本文件只管页面布局与交互样式）
    ═══════════════════════════════════════════ */
 
 :root {
@@ -26,33 +26,146 @@ body {
   padding: 0;
   background: #05060a;
   color: #fff;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* 单列竖排：手机优先，桌面居中限宽 */
-.card-list {
+/* 单屏舞台：整页就是一次抽卡，不需要滚动 */
+.stage {
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
-  padding: max(24px, env(safe-area-inset-top)) 20px max(48px, calc(env(safe-area-inset-bottom) + 24px));
+  justify-content: center;
+  gap: clamp(14px, 3.5vh, 34px);
+  padding: max(16px, env(safe-area-inset-top)) 20px max(20px, calc(env(safe-area-inset-bottom) + 14px));
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* 卡宽：手机 ~88vw，平板/桌面封顶 400px（原图纸库 3 列大卡片在手机上太挤，竖排单卡更合展示用途） */
+/* 展示卡区域：卡 + 标签 */
+.card-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* 卡宽：手机 ~88vw 封顶 400px；矮屏（如 SE）按高度收缩，保证卡+牌堆一屏放下 */
 .card {
-  width: min(88vw, 400px);
+  width: min(min(88vw, 400px), calc((100dvh - 250px) * 0.718));
 }
 
 .card__rotator {
   width: 100%;
+  touch-action: none; /* 拖动倾斜不让浏览器插手（本页无滚动，可放心禁用） */
 }
 
-/* 减少滚动条占用：移动端页面不必看到滚动条 */
-html {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* ── 抽卡"翻出"动画：整卡从牌堆方向弹出 + 卡背翻到正面 ── */
+.card-wrap.dealing {
+  animation: deal 0.5s cubic-bezier(0.2, 0.7, 0.3, 1.1);
+  pointer-events: none; /* 动画期间卡片飞过牌堆，不拦截牌堆点击 */
 }
-html::-webkit-scrollbar {
-  display: none;
+@keyframes deal {
+  0%   { transform: translateY(32vh) scale(0.55); opacity: 0.25; }
+  55%  { opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* loading → 抽中：卡背翻 0°→180°，卡面淡入（base.css 只切了不带动画，这里补过渡） */
+.card__back {
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.2);
+}
+.card.loading .card__back {
+  transition: none;
+}
+
+/* ── 推荐标签 ── */
+.draw-label {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.72);
+  min-height: 1.4em;
+  text-align: center;
+  line-height: 1.5;
+}
+.draw-label strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── 牌堆：5 层卡背扇形叠放 ── */
+.deck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: none;
+  padding: 6px 24px;
+  margin: 0;
+  font: inherit;
+  color: #fff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  touch-action: manipulation; /* 只点按，不误触滚动 */
+}
+
+.deck__fan {
+  position: relative;
+  width: 70px;
+  height: 97px; /* 卡背 660×921 ≈ 0.717，等比 */
+}
+
+/* 每层卡背：真实卡背图 + 微小旋转扇形展开 */
+.deck__fan i {
+  position: absolute;
+  inset: 0;
+  background: url("../img/card-back.webp") center / cover no-repeat;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+  transform-origin: 50% 100%;
+}
+.deck__fan i:nth-child(1) { transform: rotate(-10deg) translateX(-7px); }
+.deck__fan i:nth-child(2) { transform: rotate(-5deg) translateX(-3px); }
+.deck__fan i:nth-child(3) { transform: rotate(0deg); }
+.deck__fan i:nth-child(4) { transform: rotate(5deg) translateX(3px); }
+.deck__fan i:nth-child(5) { transform: rotate(10deg) translateX(7px); }
+
+/* 抽卡瞬间牌堆"少一张"的抖动 */
+.deck.pop .deck__fan {
+  animation: deck-pop 0.4s ease;
+}
+@keyframes deck-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.9) rotate(-3deg); }
+  100% { transform: scale(1); }
+}
+
+.deck:active .deck__fan {
+  transform: scale(0.94);
+}
+
+.deck__count {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── 动效减弱：跳过抽卡动画，卡面直接切换 ── */
+@media (prefers-reduced-motion: reduce) {
+  .card-wrap.dealing {
+    animation: none;
+  }
+  .card__back {
+    transition: none;
+  }
+  .deck.pop .deck__fan {
+    animation: none;
+  }
 }
