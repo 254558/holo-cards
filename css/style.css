@@ -155,6 +155,24 @@ body {
   font-weight: 600;
 }
 
+/* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 等宽字体 + 乱序落定） */
+.author-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.7rem;
+  border: 2px solid #fff;
+  border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
 /* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
   .card__back {

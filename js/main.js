@@ -110,13 +110,39 @@
     wrap.classList.add('rising')
   }
 
+  /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步） */
+  const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const authorBox = () => {
+    labelEl.innerHTML = ''
+    const box = document.createElement('span')
+    box.className = 'author-box'
+    labelEl.appendChild(box)
+    return box
+  }
+  const shuffleTo = (box, finalText) => {
+    if (reduce) { box.textContent = finalText; return }
+    let step = 0
+    const timer = setInterval(() => {
+      if (step < 12) {
+        // 中文/符号/空格固定，字母数字乱序跳动（乱序池同 pattens）
+        box.textContent = Array.from(finalText, (ch) =>
+          /[A-Za-z0-9]/.test(ch) ? CHAR_POOL[(Math.random() * 26) | 0] : ch,
+        ).join('')
+        step++
+      } else {
+        box.textContent = finalText
+        clearInterval(timer)
+      }
+    }, 35)
+  }
+
   /* 点一下翻面：移除 loading → 卡背 0.45s 翻转 + 卡面淡入；翻正后再点保持正面 */
   const flip = () => {
     if (busy || faceUp) return
     faceUp = true
     busy = true
     card.classList.remove('loading')
-    labelEl.innerHTML = `作者 · <strong>${cur.label}</strong>`
+    shuffleTo(authorBox(), `作者 · ${cur.label}`)
     setTimeout(() => { busy = false }, reduce ? 0 : 500) // 动画期间防连点
   }
 
