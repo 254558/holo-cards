@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   全息卡 · 抽卡页 —— 单屏布局 + 牌堆 + 抽卡动画
+   全息卡 · 翻卡页 —— 单屏布局 + 牌堆 + 翻卡/滑动动画
    （卡片本体效果全部来自 css/cards*.css，本文件只管页面布局与交互样式）
    ═══════════════════════════════════════════ */
 
@@ -18,6 +18,10 @@
   --pointer-from-center: 0;
   --pointer-from-top: 0.5;
   --pointer-from-left: 0.5;
+
+  /* 右划位移/旋转：由 js 驱动（px / deg），弹回与飞走时配合 transition */
+  --swipe-x: 0px;
+  --swipe-rot: 0deg;
 }
 
 html,
@@ -32,57 +36,148 @@ body {
   user-select: none;
 }
 
-/* 单屏舞台：整页就是一次抽卡，不需要滚动 */
+/* 单屏舞台：整页就是牌堆，不需要滚动 */
 .stage {
   height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(14px, 3.5vh, 34px);
+  gap: clamp(12px, 3vh, 28px);
   padding: max(16px, env(safe-area-inset-top)) 20px max(20px, calc(env(safe-area-inset-bottom) + 14px));
   overflow: hidden;
   box-sizing: border-box;
 }
 
-/* 展示卡区域：卡 + 标签 */
-.card-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+/* ── 牌堆：fan 层叠在顶层卡后面 ── */
+.stack {
+  position: relative;
+  /* 卡宽：手机 ~88vw 封顶 400px；矮屏按高度收缩，保证卡+文字一屏放下 */
+  width: min(min(88vw, 400px), calc((100dvh - 230px) * 0.718));
 }
 
-/* 卡宽：手机 ~88vw 封顶 400px；矮屏（如 SE）按高度收缩，保证卡+牌堆一屏放下 */
-.card {
-  width: min(min(88vw, 400px), calc((100dvh - 250px) * 0.718));
+.stack .card {
+  width: 100%;
+}
+
+/* 滑动：覆盖 base.css 的固定 transform，translateX + 旋转由 --swipe-* 驱动 */
+.stack .card {
+  -webkit-transform: translate3d(var(--swipe-x), 0, 0.01px) rotate(var(--swipe-rot));
+  transform: translate3d(var(--swipe-x), 0, 0.01px) rotate(var(--swipe-rot));
 }
 
 .card__rotator {
   width: 100%;
-  touch-action: none; /* 拖动倾斜不让浏览器插手（本页无滚动，可放心禁用） */
+  touch-action: none; /* 拖动划卡不让浏览器插手（本页无滚动） */
 }
 
-/* ── 抽卡"翻出"动画：整卡从牌堆方向弹出 + 卡背翻到正面 ── */
-.card-wrap.dealing {
-  animation: deal 0.5s cubic-bezier(0.2, 0.7, 0.3, 1.1);
-  pointer-events: none; /* 动画期间卡片飞过牌堆，不拦截牌堆点击 */
+.stack .card-wrap {
+  position: relative;
+  z-index: 1;
 }
-@keyframes deal {
-  0%   { transform: translateY(32vh) scale(0.55); opacity: 0.25; }
-  55%  { opacity: 1; }
+
+/* 装饰牌堆：8 层卡背扇形，从顶层卡下沿露出 */
+.stack__fan {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.stack__fan i {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 0;
+  aspect-ratio: var(--card-aspect);
+  border-radius: var(--card-radius);
+  background: url("../img/card-back.webp") center / cover no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5);
+  transform-origin: 50% 100%;
+}
+.stack__fan i:nth-child(1) { transform: rotate(-9deg)  translateY(24px) translateX(-10px); }
+.stack__fan i:nth-child(2) { transform: rotate(-6deg)  translateY(18px) translateX(-7px); }
+.stack__fan i:nth-child(3) { transform: rotate(-3deg)  translateY(12px) translateX(-4px); }
+.stack__fan i:nth-child(4) { transform: rotate(0deg)   translateY(7px); }
+.stack__fan i:nth-child(5) { transform: rotate(3deg)   translateY(12px) translateX(4px); }
+.stack__fan i:nth-child(6) { transform: rotate(6deg)   translateY(18px) translateX(7px); }
+.stack__fan i:nth-child(7) { transform: rotate(9deg)   translateY(24px) translateX(10px); }
+.stack__fan i:nth-child(8) { transform: rotate(0deg)   translateY(30px); }
+
+/* 划走/重置瞬间牌堆"少一张"的抖动 */
+.stack.pop .stack__fan {
+  animation: fan-pop 0.4s ease;
+}
+@keyframes fan-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.92) rotate(-2deg); }
+  100% { transform: scale(1); }
+}
+
+/* 新卡升到顶层：轻微升起入场 */
+.card-wrap.rising {
+  animation: card-rise 0.35s ease-out;
+}
+@keyframes card-rise {
+  0%   { transform: translateY(16px) scale(0.96); opacity: 0.4; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* loading → 抽中：卡背翻 0°→180°，卡面淡入（base.css 只切了不带动画，这里补过渡） */
-.card__back {
-  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.2);
+/* ── 翻卡效果（点一下从卡背翻到正面）── */
+/* 卡背 0°→180° 带过冲缓动 + 卡面同步淡入（"之前的翻卡效果"，加节奏） */
+.card.flipping .card__back {
+  transition: transform 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
 }
-.card.loading .card__back {
-  transition: none;
+.card.flipping .card__front {
+  animation: front-in 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.22);
+}
+@keyframes front-in {
+  0%  { opacity: 0; }
+  50% { opacity: 1; }
 }
 
-/* ── 推荐标签 ── */
+/* 翻转整卡缩放脉冲 + 外发光（drop-shadow 独立于 box-shadow，可叠） */
+.card-wrap.flipping {
+  animation:
+    flip-pulse 0.62s cubic-bezier(0.2, 0.7, 0.3, 1.1),
+    flip-glow 0.62s ease-out;
+  pointer-events: none; /* 动画期间不响应输入 */
+}
+@keyframes flip-pulse {
+  0%   { transform: scale(1); }
+  42%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes flip-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  45%      { filter: drop-shadow(0 0 16px var(--card-glow)); }
+}
+
+/* 翻转时一道光泽从卡面扫过（放在 .card__front 内最上层） */
+.card__flip-sweep {
+  z-index: 5;
+  border-radius: var(--card-radius);
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
+  transform: translateX(-130%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.card.flipping .card__flip-sweep {
+  animation: flip-sweep 0.65s ease-out;
+}
+@keyframes flip-sweep {
+  0%   { transform: translateX(-130%); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+
+/* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
+.card.spring {
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* ── 标签与计数 ── */
 .draw-label {
   margin: 0;
   font-size: 14px;
@@ -96,76 +191,31 @@ body {
   color: #fff;
   font-weight: 600;
 }
-
-/* ── 牌堆：5 层卡背扇形叠放 ── */
-.deck {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  border: none;
-  background: none;
-  padding: 6px 24px;
+.deck-hint {
   margin: 0;
-  font: inherit;
-  color: #fff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  touch-action: manipulation; /* 只点按，不误触滚动 */
-}
-
-.deck__fan {
-  position: relative;
-  width: 70px;
-  height: 97px; /* 卡背 660×921 ≈ 0.717，等比 */
-}
-
-/* 每层卡背：真实卡背图 + 微小旋转扇形展开 */
-.deck__fan i {
-  position: absolute;
-  inset: 0;
-  background: url("../img/card-back.webp") center / cover no-repeat;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
-  transform-origin: 50% 100%;
-}
-.deck__fan i:nth-child(1) { transform: rotate(-10deg) translateX(-7px); }
-.deck__fan i:nth-child(2) { transform: rotate(-5deg) translateX(-3px); }
-.deck__fan i:nth-child(3) { transform: rotate(0deg); }
-.deck__fan i:nth-child(4) { transform: rotate(5deg) translateX(3px); }
-.deck__fan i:nth-child(5) { transform: rotate(10deg) translateX(7px); }
-
-/* 抽卡瞬间牌堆"少一张"的抖动 */
-.deck.pop .deck__fan {
-  animation: deck-pop 0.4s ease;
-}
-@keyframes deck-pop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(0.9) rotate(-3deg); }
-  100% { transform: scale(1); }
-}
-
-.deck:active .deck__fan {
-  transform: scale(0.94);
-}
-
-.deck__count {
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.45);
+  min-height: 1.4em;
+  text-align: center;
 }
 
-/* ── 动效减弱：跳过抽卡动画，卡面直接切换 ── */
+/* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
-  .card-wrap.dealing {
+  .card.flipping .card__back,
+  .card.flipping .card__front {
+    transition: none;
     animation: none;
   }
-  .card__back {
+  .card.flipping .card__flip-sweep,
+  .card-wrap.flipping {
+    animation: none;
+  }
+  .card.spring {
     transition: none;
   }
-  .deck.pop .deck__fan {
+  .stack.pop .stack__fan,
+  .card-wrap.rising {
     animation: none;
   }
 }
