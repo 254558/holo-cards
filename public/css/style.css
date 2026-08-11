@@ -22,6 +22,10 @@
   /* 右划位移/旋转：由 js 驱动（px / deg），弹回与飞走时配合 transition */
   --swipe-x: 0px;
   --swipe-rot: 0deg;
+
+  /* 黑体（无衬线）字体栈：作者文字与名字方框共用 */
+  --font-heiti: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 html,
@@ -199,11 +203,13 @@ body {
 }
 
 /* 作者标签态：与牌堆同宽、左对齐 → "AUTHOR ·" 的左边定在卡左边不动，
-   只有作者名字方框的右边随名字长度伸缩；整体比默认标签低一点 */
+   只有作者名字方框的右边随名字长度伸缩；整体比默认标签低一点；
+   "AUTHOR" 用与方框相同的黑体字体 */
 .draw-label.label-author {
   width: var(--stack-w);
   text-align: left;
   margin-top: 10px;
+  font-family: var(--font-heiti);
 }
 
 /* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 乱序落定）。
@@ -215,8 +221,7 @@ body {
   padding: 0.4rem 0.7rem;
   border: 2px solid #fff;
   border-radius: 5px;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-heiti);
   font-size: 1.15rem;
   font-weight: 600;
   text-transform: uppercase;
