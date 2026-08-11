@@ -65,7 +65,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: clamp(12px, 3vh, 28px);
-  padding: max(16px, env(safe-area-inset-top)) 20px max(20px, calc(env(safe-area-inset-bottom) + 14px));
+  padding: max(40px, env(safe-area-inset-top)) 20px max(20px, calc(env(safe-area-inset-bottom) + 14px));
   overflow: hidden;
   box-sizing: border-box;
   /* 卡宽（牌堆与作者标签共用）：手机 ~60vw 封顶 320px（比之前小，点按弹出放大比例更大、一眼可见）；
