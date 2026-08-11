@@ -197,7 +197,7 @@ body {
 .draw-label.label-author {
   width: var(--stack-w);
   text-align: center;
-  margin-top: 60px;
+  margin-top: 40px;
   font-family: var(--font-heiti);
 }
 
