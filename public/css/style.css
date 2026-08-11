@@ -151,6 +151,17 @@ html.safari26 .stage {
   transform: rotateY(0deg); /* 同 loading 态：背面正面朝上，不镜像 */
 }
 
+/* 划走后重建的新卡：从牌堆位置轻微升起（缩小+下移+半透明 → 就位），
+   衔接"从牌堆抽出下一张"的节奏——深色卡背亮相的瞬间有运动感，不呆立"闪黑"。
+   fill 默认 none：动画结束交还给 .stack .card 的 --swipe-* transform，拖动划卡不受影响 */
+.card-wrap > .card:not(.next-back) {
+  animation: card-rise 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+@keyframes card-rise {
+  0%   { transform: translate3d(0, 14px, 0.01px) scale(0.94); opacity: 0.6; }
+  100% { transform: translate3d(0, 0, 0.01px) scale(1); opacity: 1; }
+}
+
 /* 装饰牌堆：8 层卡背扇形，从顶层卡下沿露出 */
 .stack__fan {
   position: absolute;
@@ -200,9 +211,15 @@ html.safari26 .stage {
   50%  { transform: rotateZ(-10deg) rotateY(90deg); }
   100% { transform: rotateZ(0deg) rotateY(0deg); }
 }
-/* 翻转中背面临时 backface-hidden：前半程背面正面朝外（正确可见），后半程前片盖住背面，
-   避免前片淡入半透明时镜像背面透出来；翻转结束恢复 visible（供 360° 弹出的远侧背面） */
-.card__flip.flipping .card__back { backface-visibility: hidden; }
+/* 翻转中：卡背必须保持 visible。旧做法给卡背加 backface-hidden 会让起始帧
+   （容器 rotateY(180°)，卡背正好转到观众侧）连卡背一起隐掉 → 双面皆隐、
+   卡片整片透明、透出下层深色卡背 = 划走时"闪黑"。
+   去掉后：起始帧卡背正对观众（正确），随翻转自然转走，后半程前片转过来。
+   前片淡入要够快（0.12s < 后半程 0.14s）：转到正面时已盖满，
+   半透明期间透不出正后方的镜像卡背 */
+.card__flip.flipping .card__front {
+  transition: opacity 0.12s ease-out;
+}
 
 /* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
 .card.spring {
@@ -252,9 +269,12 @@ html.safari26 .stage {
   white-space: nowrap;
 }
 
-/* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
+/* ── 动效减弱：不翻卡/不飞走/不弹回/不升起，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
   .card.spring {
     transition: none;
+  }
+  .card-wrap > .card:not(.next-back) {
+    animation: none;
   }
 }

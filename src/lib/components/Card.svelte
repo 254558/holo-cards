@@ -29,6 +29,9 @@
   let loading = true
   let autoflipping = false   // 划走后新卡自动翻面：.card__flip 快速 180°→0° 翻转动画中
   let safetyTimer = null     // 翻转动画 animationend 的兜底清理
+  let imgReady = false       // 卡面图已解码（缓存命中也算）；图没就绪前不露正面
+  let loadTimer = null       // 图片加载失败/超慢的兜底计时
+  let thisImg               // 卡面 <img>（读 complete/naturalWidth）
 
   /* svelte/motion spring（同桌面 popover 手感：慢速带过冲，约 1.5s 落定） */
   const springPopoverSettings = { stiffness: 0.033, damping: 0.45 }
@@ -49,26 +52,48 @@
   const s = { touching: false, tx: 0.5, ty: 0.5, rx: 0, ry: 0 }
   let rafId = null
   let flipTimer = null
+  let autoFlipDone = false // 划走后自动翻面只触发一次（等图重排/兜底都只走一遍）
   let springScaleSub, springRotateSub
 
-  /* 点一下翻面：移除 loading → 卡背瞬切（翻转交给外层 360° 旋转）+ 卡面淡入 */
+  /* 卡面图就绪才移除 loading（露正面）：
+     全息扫光（shine/glare）是纯 CSS 特效，永远比 <img> 先渲染——
+     图没就绪就露正面，会出现"全息已出、图案还没到"的错位 */
+  const revealFront = () => {
+    if (!faceUp || !loading) return
+    if (imgReady) loading = false
+  }
+  const onImgLoad = () => {
+    if (loadTimer !== null) { clearTimeout(loadTimer); loadTimer = null }
+    imgReady = true
+    revealFront()
+    // 划走后自动翻面在等图：图一到就重排（含 120ms 停顿）
+    if (autoFlip && !autoFlipDone) { clearTimeout(flipTimer); scheduleAutoFlip() }
+  }
+
+  /* 点一下翻面：移除 loading → 卡背瞬切（翻转交给外层 360° 旋转）+ 卡面淡入（等图就绪） */
   const flip = () => {
     if (faceUp) return
     faceUp = true
-    loading = false
     dispatch('flip', card && card.label)
+    if (thisImg && thisImg.complete && thisImg.naturalWidth > 0) imgReady = true
+    revealFront()
+    // 兜底：图片加载失败/超慢也露正面（宁可空白也不一直卡在卡背）
+    if (!imgReady) loadTimer = setTimeout(() => { imgReady = true; revealFront() }, 1500)
   }
 
   /* 划走后自动翻面（Fallout 卡牌翻卡动画移植）：back/front 外层 .card__flip 快速 180°→0°
-     翻转（中点 -10° Z 轴摆动，0.275s），背面临时 backface-hidden 防镜像透出；
+     翻转（中点 -10° Z 轴摆动，0.275s），卡背全程可见（style.css 不再 backface-hidden）；
      只在 autoFlip 时用 —— 手动点按仍是 360° 弹簧弹出 */
   const flipAnimated = () => {
     if (faceUp) return
     faceUp = true
-    loading = false
     autoflipping = true
     safetyTimer = setTimeout(() => { autoflipping = false }, 500) // animationend 兜底
     dispatch('flip', card && card.label)
+    if (thisImg && thisImg.complete && thisImg.naturalWidth > 0) imgReady = true
+    revealFront()
+    // 兜底：图片加载失败/超慢也露正面
+    if (!imgReady) loadTimer = setTimeout(() => { imgReady = true; revealFront() }, 1500)
   }
 
   const onFlipEnd = (e) => {
@@ -227,20 +252,38 @@
     thisCard.style.setProperty('--card-opacity', (0.5 + dist * 0.4).toFixed(2))
   }
 
+  /* 划走后自动翻面（autoFlip 一次性流程）：
+     先等卡面图就绪（缓存命中直接走 120ms 停顿），再播翻转动画 */
+  const doAutoFlip = () => {
+    if (autoFlipDone) return
+    autoFlipDone = true
+    if (reduce) flip()
+    else flipAnimated()
+  }
+  const scheduleAutoFlip = () => {
+    const imgReadyNow = thisImg && thisImg.complete && thisImg.naturalWidth > 0
+    if (!imgReadyNow && !imgReady) {
+      // 卡面图未就绪：等 onload（onImgLoad 会重排 scheduleAutoFlip），2.5s 兜底强制翻
+      flipTimer = setTimeout(doAutoFlip, 2500)
+      return
+    }
+    flipTimer = setTimeout(doAutoFlip, reduce ? 0 : 120)
+  }
+
   onMount(() => {
     // spring 值镜像
     springScaleSub = springScale.subscribe((v) => { pop.scale = v })
     springRotateSub = springRotateDelta.subscribe((v) => { pop.rx = v.x; pop.ry = v.y })
     rafId = requestAnimationFrame(tick)
     // 划走后新卡由底下候着的卡背原位接替：短暂停顿（让"下一张已露出"被感知）后自动翻面；
+    // 卡面图没就绪则先等 onload（避免"全息先出、图案后到"）；
     // 动效减弱时直接瞬切（flip），正常则播 Fallout 式快速翻转（flipAnimated）
-    if (autoFlip) {
-      flipTimer = setTimeout(reduce ? flip : flipAnimated, reduce ? 0 : 200)
-    }
+    if (autoFlip) scheduleAutoFlip()
     return () => {
       cancelAnimationFrame(rafId)
       if (flipTimer !== null) clearTimeout(flipTimer)
       if (safetyTimer !== null) clearTimeout(safetyTimer)
+      if (loadTimer !== null) clearTimeout(loadTimer)
       if (springScaleSub) springScaleSub()
       if (springRotateSub) springRotateSub()
     }
@@ -273,7 +316,15 @@
       <div class="card__flip" class:flipping={autoflipping} on:animationend={onFlipEnd}>
         <img class="card__back" src="/img/card-back.webp" alt="" width="660" height="921" />
         <div class="card__front">
-          <img src={card && card.img} alt="" decoding="async" width="660" height="921" />
+          <img
+            src={card && card.img}
+            alt=""
+            decoding="async"
+            width="660"
+            height="921"
+            bind:this={thisImg}
+            on:load={onImgLoad}
+          />
           <div class="card__shine"></div>
           <div class="card__glare"></div>
         </div>

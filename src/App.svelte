@@ -12,6 +12,11 @@
     const i = new Image()
     i.src = c.img
   }
+  /* 卡背图也预加载：牌堆/下一张/扇形都用它，慢网下避免首帧露出深灰兜底色 */
+  {
+    const b = new Image()
+    b.src = '/img/card-back.webp'
+  }
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 
