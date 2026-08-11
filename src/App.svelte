@@ -6,17 +6,32 @@
   import FaultyTerminal from './lib/components/FaultyTerminal.svelte'
   import { CARDS } from './lib/data/cards.js'
 
-  /* 预加载全部 38 张卡图：翻面/划走自动翻面时图案立即可用，
-     避免"全息效果先出来、图案还在加载"的错位（慢网络下尤其明显） */
-  for (const c of CARDS) {
+  /* 预加载全部 38 张卡图 + 卡背图：
+     只 new Image() 设 src 不够——① 循环里不保存引用会被 GC 回收，
+     浏览器把缓存条目清掉，划走后新卡还是要现场拉图（已验证首用重拉）；
+     ② fetch 完成≠解码，解码发生在首次绘制时，正好卡在新卡露脸的瞬间。
+     这里保存引用 + decode() 强制解码到位（分批错峰，避免 38 张同时解码
+     冲击首帧），保证划走换卡/翻面瞬间图案立即可用——
+     新卡不会再长时间停在暗卡背（"闪黑"感），任何视口高度下都一致 */
+  const preloaded = CARDS.map((c) => {
     const i = new Image()
     i.src = c.img
-  }
-  /* 卡背图也预加载：牌堆/下一张/扇形都用它，慢网下避免首帧露出深灰兜底色 */
+    return i
+  })
   {
     const b = new Image()
     b.src = '/img/card-back.webp'
+    preloaded.push(b)
   }
+  let warmIdx = 0
+  const warmDecode = () => {
+    for (const i of preloaded.slice(warmIdx, warmIdx + 4)) {
+      if (i.decode) i.decode().catch(() => {})
+    }
+    warmIdx += 4
+    if (warmIdx < preloaded.length) setTimeout(warmDecode, 80)
+  }
+  warmDecode()
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 
