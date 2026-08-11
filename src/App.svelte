@@ -61,13 +61,14 @@
   }
 
   /* 作者名字方框：同 pattens 标题旁 shuffle-code —— 整串乱序 N 步后落定（35ms/步）。
-     "AUTHOR"字样在方框外：结构只建一次、复用（不清空重建），
-     方框宽度自适应名字长度（无固定宽），右边随作者名字长短伸缩 */
+     "AUTHOR"字样在方框外：结构只建一次、复用（不清空重建）；
+     标签进入作者态加 .label-author（与牌堆同宽左对齐）→ 左边定住，只有框的右边随名字伸缩 */
   const CHAR_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const ensureAuthor = () => {
     const existing = labelEl.querySelector('.author-box')
     if (existing) return existing
     labelEl.innerHTML = ''
+    labelEl.classList.add('label-author')
     labelEl.appendChild(document.createTextNode('AUTHOR · '))
     const box = document.createElement('span')
     box.className = 'author-box'
@@ -93,6 +94,7 @@
   const setLabel = (text) => {
     if (!labelEl) return
     labelEl.innerHTML = ''
+    labelEl.classList.remove('label-author') // 提示态回到默认居中
     labelEl.textContent = text
   }
 

@@ -64,14 +64,15 @@ body {
   padding: max(16px, env(safe-area-inset-top)) 20px max(20px, calc(env(safe-area-inset-bottom) + 14px));
   overflow: hidden;
   box-sizing: border-box;
+  /* 卡宽（牌堆与作者标签共用）：手机 ~60vw 封顶 320px（比之前小，点按弹出放大比例更大、一眼可见）；
+     矮屏按高度收缩，保证卡+文字一屏放下 */
+  --stack-w: min(min(60vw, 320px), calc((100dvh - 230px) * 0.718));
 }
 
 /* ── 牌堆：fan 层叠在顶层卡后面 ── */
 .stack {
   position: relative;
-  /* 卡宽：手机 ~60vw 封顶 320px（比之前小，点按弹出放大比例更大、一眼可见）；
-     矮屏按高度收缩，保证卡+文字一屏放下 */
-  width: min(min(60vw, 320px), calc((100dvh - 230px) * 0.718));
+  width: var(--stack-w);
 }
 
 .stack .card {
@@ -197,8 +198,16 @@ body {
   font-weight: 600;
 }
 
-/* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 等宽字体 + 乱序落定）。
-   不设固定宽度 → 框宽随名字长度自适应，框的右边随作者名字长短伸缩 */
+/* 作者标签态：与牌堆同宽、左对齐 → "AUTHOR ·" 的左边定在卡左边不动，
+   只有作者名字方框的右边随名字长度伸缩；整体比默认标签低一点 */
+.draw-label.label-author {
+  width: var(--stack-w);
+  text-align: left;
+  margin-top: 10px;
+}
+
+/* 作者名字方框：同 pattens 标题旁 shuffle-code（2px 白框 + 乱序落定）。
+   黑体（无衬线），不设固定宽度 → 框宽随名字长度自适应，框的右边随作者名字长短伸缩 */
 .author-box {
   display: inline-flex;
   align-items: center;
@@ -206,7 +215,8 @@ body {
   padding: 0.4rem 0.7rem;
   border: 2px solid #fff;
   border-radius: 5px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1.15rem;
   font-weight: 600;
   text-transform: uppercase;
