@@ -11,7 +11,7 @@
   import { spring } from 'svelte/motion'
   import { createEventDispatcher, onMount } from 'svelte'
   import { clamp } from '../helpers/Math.js'
-  import { QUALITY } from '../helpers/quality.js'
+  import { QUALITY, quality } from '../helpers/quality.js'
 
   export let card = null          // { r,n,s,st,su,tg,label,img }
   export let autoFlip = false     // 划走后新卡升起：自动翻到正面
@@ -236,13 +236,16 @@
     const dist = Math.min(1, Math.hypot(dx, dy) * 2)
     const amt = s.touching ? 1 : 0.4 // 触摸满幅，空闲轻微
 
-    thisCard.style.setProperty('--pointer-x', `${(px * 100).toFixed(2)}%`)
-    thisCard.style.setProperty('--pointer-y', `${(py * 100).toFixed(2)}%`)
-    thisCard.style.setProperty('--background-x', `${(px * 100).toFixed(2)}%`)
-    thisCard.style.setProperty('--background-y', `${(py * 100).toFixed(2)}%`)
-    thisCard.style.setProperty('--pointer-from-center', dist.toFixed(3))
-    thisCard.style.setProperty('--pointer-from-left', px.toFixed(3))
-    thisCard.style.setProperty('--pointer-from-top', py.toFixed(3))
+    if (!$quality.veryLowEnd) {
+      // 极低端档（.no-fx）：shine/glare 已不渲染，跳过扫光变量写入，避免每帧样式重算
+      thisCard.style.setProperty('--pointer-x', `${(px * 100).toFixed(2)}%`)
+      thisCard.style.setProperty('--pointer-y', `${(py * 100).toFixed(2)}%`)
+      thisCard.style.setProperty('--background-x', `${(px * 100).toFixed(2)}%`)
+      thisCard.style.setProperty('--background-y', `${(py * 100).toFixed(2)}%`)
+      thisCard.style.setProperty('--pointer-from-center', dist.toFixed(3))
+      thisCard.style.setProperty('--pointer-from-left', px.toFixed(3))
+      thisCard.style.setProperty('--pointer-from-top', py.toFixed(3))
+    }
 
     // 平滑过渡到目标角度（lerp）+ 弹出旋转叠加（svelte/motion spring）
     s.rx += (dx * 2 * ROT_MAX * amt - s.rx) * 0.12
@@ -306,6 +309,7 @@
   class:active
   class:interacting
   class:loading
+  class:no-fx={$quality.veryLowEnd}
   data-rarity={card && card.r}
   data-number={card && card.n}
   data-set={card && card.s}

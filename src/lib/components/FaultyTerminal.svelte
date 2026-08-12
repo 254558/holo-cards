@@ -7,7 +7,7 @@
      运行状态写入容器 data-bg-* 属性（只读验证用，不污染 window）。 -->
 <script>
   import { onMount } from 'svelte'
-  import { QUALITY } from '../helpers/quality.js'
+  import { QUALITY, quality } from '../helpers/quality.js'
 
   export let host = null
 
@@ -27,6 +27,9 @@
     let raf = null
     let ro = null
     const offs = []
+
+    // 极低端档：不开 WebGL（纯色背景），不跑任何着色器
+    if (QUALITY.veryLowEnd) { mark('off', 'very-low-end'); return }
 
     try {
       // ── 配置（= vue-bits FaultyTerminal demo 预览参数；手机窄屏 scale 调大一点，网格更密）──
@@ -440,6 +443,17 @@ void main() {
       }
       document.addEventListener('visibilitychange', onVis)
       offs.push(() => document.removeEventListener('visibilitychange', onVis))
+
+      // 运行期升档（帧率探测判定特别卡）：停帧并移除画布，回归纯色背景
+      let unsub
+      unsub = quality.subscribe((q) => {
+        if (!q.veryLowEnd) return
+        if (raf !== null) { cancelAnimationFrame(raf); raf = null }
+        try { if (canvas.parentNode) canvas.parentNode.removeChild(canvas) } catch (e) {}
+        mark('off', 'escalated')
+        unsub()
+      })
+      offs.push(unsub)
 
       mark('ready')
       mark('size', canvas.width + 'x' + canvas.height)

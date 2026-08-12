@@ -217,6 +217,14 @@ html.safari26 .stage {
   transition: opacity 0.12s ease-out;
 }
 
+/* ── 极低端机（veryLowEnd）：全息纹理全关 ──
+   卡面只留图案 + 翻转/划走/弹出（纯 transform），不再渲染 shine/glare 图层：
+   省掉每帧 filter/mix-blend/多层背景的合成，由 quality.js 判定后加 .no-fx */
+.card.no-fx .card__shine,
+.card.no-fx .card__glare {
+  display: none;
+}
+
 /* ── 弹回/飞走的过渡：由 js 临时加到 .card 上 ── */
 .card.spring {
   transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
