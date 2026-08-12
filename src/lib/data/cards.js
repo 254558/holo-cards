@@ -1,4 +1,4 @@
-/* 38 张卡数据：属性与图纸库运行态一致（由原 index.html 逐卡解析）。
+/* 42 张卡数据：属性与图纸库运行态一致（由原 index.html 逐卡解析）。
    img 指向 public/patterns/pNN.webp（Vite 静态资源，根路径 /patterns/...） */
 export const CARDS = [
   { r: 'rare rainbow alt', n: '01', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Rainbow Alt', img: '/patterns/p01.webp' },
@@ -39,4 +39,9 @@ export const CARDS = [
   { r: 'rare rainbow alt', n: '36', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Rainbow Alt', img: '/patterns/p36.webp' },
   { r: 'common', n: '37', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Plain', img: '/patterns/p37.webp' },
   { r: 'amazing rare', n: '38', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Amazing Rare', img: '/patterns/p38.webp' },
+  /* ── 桌面「图片」文件夹加入的自定义卡（拼豆图纸 40×40，p39–p42.png）── */
+  { r: 'rare holo', n: '39', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 01', img: '/patterns/p39.png' },
+  { r: 'rare holo cosmos', n: '40', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 02', img: '/patterns/p40.png' },
+  { r: 'amazing rare', n: '41', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 03', img: '/patterns/p41.png' },
+  { r: 'rare secret', n: '42', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 04', img: '/patterns/p42.png' },
 ]

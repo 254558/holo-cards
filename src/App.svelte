@@ -1,16 +1,16 @@
 <!-- 全息卡 · 翻卡页（Svelte 版）
      页面 = 故障终端背景（#94a3b8 灰蓝）+ 中央牌堆（fan 装饰层 + 顶层真卡）+ 作者标签。
-     牌堆状态机：38 张洗牌、右划划走换卡、划完自动洗牌重置。 -->
+     牌堆状态机：42 张洗牌、右划划走换卡、划完自动洗牌重置。 -->
 <script>
   import Card from './lib/components/Card.svelte'
   import FaultyTerminal from './lib/components/FaultyTerminal.svelte'
   import { CARDS } from './lib/data/cards.js'
 
-  /* 预加载全部 38 张卡图 + 卡背图：
+  /* 预加载全部 42 张卡图 + 卡背图：
      只 new Image() 设 src 不够——① 循环里不保存引用会被 GC 回收，
      浏览器把缓存条目清掉，划走后新卡还是要现场拉图（已验证首用重拉）；
      ② fetch 完成≠解码，解码发生在首次绘制时，正好卡在新卡露脸的瞬间。
-     这里保存引用 + decode() 强制解码到位（分批错峰，避免 38 张同时解码
+     这里保存引用 + decode() 强制解码到位（分批错峰，避免 42 张同时解码
      冲击首帧），保证划走换卡/翻面瞬间图案立即可用——
      新卡不会再长时间停在暗卡背（"闪黑"感），任何视口高度下都一致 */
   const preloaded = CARDS.map((c) => {
@@ -55,7 +55,7 @@
 
   let labelEl
 
-  /* 划走后：下一张（order[cursor]）升到顶层，卡背朝上并自动翻面 */
+  /* 划走后：下一张（order[cursor]）原位接替顶层，卡背朝上并自动翻面 */
   const onDismiss = () => {
     if (advancing) return
     advancing = true
@@ -124,7 +124,7 @@
 
 <main class="stage">
   <!-- SEO/读屏：视觉隐藏的结构化标题与描述（.seo-only 绝对定位不占布局） -->
-  <h1 class="seo-only">全息卡 · 翻卡 | Holo Cards — 38 张全息卡牌交互体验</h1>
+  <h1 class="seo-only">全息卡 · 翻卡 | Holo Cards — 42 张全息卡牌交互体验</h1>
   <p class="seo-only">右划换卡、点按翻面、360° 弹簧弹出，每张卡都有独特的全息扫光与炫彩特效。</p>
   <!-- 中央牌堆：背后 8 层卡背扇形（装饰），顶层是真实可交互卡 -->
   <div class="stack" id="stack">

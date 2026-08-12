@@ -151,15 +151,11 @@ html.safari26 .stage {
   transform: rotateY(0deg); /* 同 loading 态：背面正面朝上，不镜像 */
 }
 
-/* 划走后重建的新卡：从牌堆位置轻微升起（缩小+下移+半透明 → 就位），
-   衔接"从牌堆抽出下一张"的节奏——深色卡背亮相的瞬间有运动感，不呆立"闪黑"。
-   fill 默认 none：动画结束交还给 .stack .card 的 --swipe-* transform，拖动划卡不受影响 */
+/* 划走后重建的新卡：原位接替，不做升起动画。
+   卡背位（.next-back）始终候在顶层卡正下方同一位置——旧卡飞走后新卡
+   就在原处，不再"凭空往上弹"；翻面动画（card-flip）提供运动感 */
 .card-wrap > .card:not(.next-back) {
-  animation: card-rise 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
-}
-@keyframes card-rise {
-  0%   { transform: translate3d(0, 14px, 0.01px) scale(0.94); opacity: 0.6; }
-  100% { transform: translate3d(0, 0, 0.01px) scale(1); opacity: 1; }
+  /* 无动画：挂载时与 .next-back 视觉完全一致（同位置同卡背），切换不可见 */
 }
 
 /* 装饰牌堆：8 层卡背扇形，从顶层卡下沿露出 */
@@ -269,13 +265,10 @@ html.safari26 .stage {
   white-space: nowrap;
 }
 
-/* ── 动效减弱：不翻卡/不飞走/不弹回/不升起，直接切换 ── */
+/* ── 动效减弱：不翻卡/不飞走/不弹回，直接切换 ── */
 @media (prefers-reduced-motion: reduce) {
   .card.spring {
     transition: none;
-  }
-  .card-wrap > .card:not(.next-back) {
-    animation: none;
   }
 }
 
