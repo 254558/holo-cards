@@ -5,33 +5,40 @@
   import Card from './lib/components/Card.svelte'
   import FaultyTerminal from './lib/components/FaultyTerminal.svelte'
   import { CARDS } from './lib/data/cards.js'
+  import { QUALITY } from './lib/helpers/quality.js'
 
-  /* 预加载全部 42 张卡图 + 卡背图：
-     只 new Image() 设 src 不够——① 循环里不保存引用会被 GC 回收，
-     浏览器把缓存条目清掉，划走后新卡还是要现场拉图（已验证首用重拉）；
-     ② fetch 完成≠解码，解码发生在首次绘制时，正好卡在新卡露脸的瞬间。
-     这里保存引用 + decode() 强制解码到位（分批错峰，避免 42 张同时解码
-     冲击首帧），保证划走换卡/翻面瞬间图案立即可用——
-     新卡不会再长时间停在暗卡背（"闪黑"感），任何视口高度下都一致 */
-  const preloaded = CARDS.map((c) => {
-    const i = new Image()
-    i.src = c.img
-    return i
-  })
+  /* ── 预加载：滑动窗口（当前卡 + 后 N 张），不全量拉 42 张 ──
+     只 new Image() 设 src 不够——不保存引用会被 GC 回收，浏览器把缓存条目清掉，
+     划走后新卡还是要现场拉图（已验证首用重拉）；这里用 Map 保存引用防 GC。
+     窗口内 decode 错峰：前两张（当前 + 下一张）立即、其余 80ms 后补，
+     保证划走换卡/翻面瞬间图案立即可用——新卡不停在暗卡背（"闪黑"感）。
+     启动只拉 1+N 张（N = QUALITY.preloadWindow，低端机更小），不再一次性
+     拉全量 42 张冲击首帧 */
+  const preloaded = new Map() // url -> Image（保存引用防 GC）
   {
     const b = new Image()
     b.src = '/img/card-back.webp'
-    preloaded.push(b)
+    preloaded.set('/img/card-back.webp', b)
   }
-  let warmIdx = 0
-  const warmDecode = () => {
-    for (const i of preloaded.slice(warmIdx, warmIdx + 4)) {
-      if (i.decode) i.decode().catch(() => {})
+  const prefetch = (url) => {
+    let i = preloaded.get(url)
+    if (!i) { i = new Image(); i.src = url; preloaded.set(url, i) }
+    return i
+  }
+  let preloadTimer = null
+  const warm = (start, count) => {
+    const list = []
+    for (let k = start; k < Math.min(start + count, order.length); k++) {
+      list.push(prefetch(CARDS[order[k]].img))
     }
-    warmIdx += 4
-    if (warmIdx < preloaded.length) setTimeout(warmDecode, 80)
+    list.slice(0, 2).forEach((i) => i.decode && i.decode().catch(() => {}))
+    if (preloadTimer !== null) clearTimeout(preloadTimer)
+    if (list.length > 2) {
+      preloadTimer = setTimeout(() => {
+        list.slice(2).forEach((i) => i.decode && i.decode().catch(() => {}))
+      }, 80)
+    }
   }
-  warmDecode()
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -47,6 +54,7 @@
     cursor = 0
   }
   shuffle()
+  warm(0, 1 + QUALITY.preloadWindow) // 初始窗口：当前顶层卡 + 后 N 张
 
   let cur = CARDS[order[0]]  // 初始顶层卡 = 洗牌后第一张（卡背朝上，翻面后看到它）
   let keyId = 0              // {#key} 强制重建 Card 实例 → 卡背朝上 + 每张首次 360°
@@ -73,6 +81,7 @@
         cur = CARDS[order[cursor]]
         autoFlip = true
       }
+      warm(cursor, 1 + QUALITY.preloadWindow) // 滑动窗口前移：补拉下一批
       keyId += 1
     }, reduce ? 0 : 480)
   }

@@ -11,6 +11,7 @@
   import { spring } from 'svelte/motion'
   import { createEventDispatcher, onMount } from 'svelte'
   import { clamp } from '../helpers/Math.js'
+  import { QUALITY } from '../helpers/quality.js'
 
   export let card = null          // { r,n,s,st,su,tg,label,img }
   export let autoFlip = false     // 划走后新卡升起：自动翻到正面
@@ -222,11 +223,11 @@
     rafId = requestAnimationFrame(tick)
     let px = s.tx
     let py = s.ty
-    if (!s.touching && !reduce) {
-      // 空闲游移：缓慢正弦扫描
+    if (!s.touching && !reduce && QUALITY.idleShimmer) {
+      // 空闲游移：缓慢正弦扫描（低端机关闭：CSS 变量静止，合成器不每帧重算全息图层）
       px = 0.5 + 0.3 * Math.sin(t * 0.0006 + 0)
       py = 0.5 + 0.26 * Math.cos(t * 0.0008 + 0)
-    } else if (reduce && !s.touching) {
+    } else if (!s.touching && (reduce || !QUALITY.idleShimmer)) {
       px = 0.5
       py = 0.5
     }
@@ -275,12 +276,22 @@
     springScaleSub = springScale.subscribe((v) => { pop.scale = v })
     springRotateSub = springRotateDelta.subscribe((v) => { pop.rx = v.x; pop.ry = v.y })
     rafId = requestAnimationFrame(tick)
+    // 页面隐藏暂停 rAF（浏览器也会停帧，这里兜底让出 CPU/GPU；可见时续跑）
+    const onVis = () => {
+      if (document.hidden) {
+        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null }
+      } else if (rafId === null) {
+        rafId = requestAnimationFrame(tick)
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
     // 划走后新卡由底下候着的卡背原位接替：短暂停顿（让"下一张已露出"被感知）后自动翻面；
     // 卡面图没就绪则先等 onload（避免"全息先出、图案后到"）；
     // 动效减弱时直接瞬切（flip），正常则播 Fallout 式快速翻转（flipAnimated）
     if (autoFlip) scheduleAutoFlip()
     return () => {
       cancelAnimationFrame(rafId)
+      document.removeEventListener('visibilitychange', onVis)
       if (flipTimer !== null) clearTimeout(flipTimer)
       if (safetyTimer !== null) clearTimeout(safetyTimer)
       if (loadTimer !== null) clearTimeout(loadTimer)

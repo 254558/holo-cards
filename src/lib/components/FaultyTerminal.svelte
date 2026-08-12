@@ -7,6 +7,7 @@
      运行状态写入容器 data-bg-* 属性（只读验证用，不污染 window）。 -->
 <script>
   import { onMount } from 'svelte'
+  import { QUALITY } from '../helpers/quality.js'
 
   export let host = null
 
@@ -339,9 +340,9 @@ void main() {
       set1(U.uUsePageLoadAnimation, CFG.pageLoadAnimation ? 1 : 0)
       set1(U.uBrightness, CFG.brightness)
 
-      // ── 尺寸（跟随容器 = 视口，dpr 封顶 2）──
+      // ── 尺寸（跟随容器 = 视口；dpr 上限按设备分级：低端 1.25，高端 2）──
       function resize() {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const dpr = Math.min(window.devicePixelRatio || 1, QUALITY.bgDprCap)
         const w = root.clientWidth
         const h = root.clientHeight
         if (!w || !h) return
@@ -425,6 +426,20 @@ void main() {
       } else {
         raf = requestAnimationFrame(frame)
       }
+
+      // ── 页面隐藏：停帧让出 GPU（浏览器也会停 rAF，这里兜底），可见时续跑 ──
+      let pausedByHidden = false
+      const onVis = () => {
+        if (document.hidden) {
+          pausedByHidden = true
+          if (raf !== null) { cancelAnimationFrame(raf); raf = null }
+        } else if (pausedByHidden && !reduce) {
+          pausedByHidden = false
+          raf = requestAnimationFrame(frame)
+        }
+      }
+      document.addEventListener('visibilitychange', onVis)
+      offs.push(() => document.removeEventListener('visibilitychange', onVis))
 
       mark('ready')
       mark('size', canvas.width + 'x' + canvas.height)

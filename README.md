@@ -11,6 +11,7 @@ Svelte 单页应用（Vite 3 + Svelte 3 SPA，与桌面 pokemon-cards-css 同栈
 - **其他方向 / 短划** → 弹回原位
 - 42 张划完自动洗牌重置，提示"看完了 · 已重新洗牌"
 - 空闲时卡片缓慢游移扫光；`prefers-reduced-motion` 时全部静止、直接换卡
+- **性能自适应**（`src/lib/helpers/quality.js` 按 `deviceMemory`/核数/网络/`prefers-reduced-motion` 分级）：低端机自动关闭空闲扫光（全息图层免每帧重算）、背景降渲染分辨率（dpr 1.25）、缩小预加载窗口；页面隐藏时两个 rAF 循环（背景/卡片）停帧省电。高端机保持全效
 
 ## 文件
 ```
@@ -25,6 +26,7 @@ src/lib/components/Card.svelte          单卡：翻面 + 弹出 360° 弹簧（
 src/lib/components/FaultyTerminal.svelte 故障终端背景（vue-bits FaultyTerminal 移植，零依赖 WebGL，颜色 #94a3b8）
 src/lib/data/cards.js 42 张卡数据
 src/lib/helpers/Math.js 从桌面项目拷贝（round/clamp/adjust）
+src/lib/helpers/quality.js 设备分级：低端检测 → 降级开关（背景 dpr / 空闲扫光 / 预加载窗口）
 ```
 
 ## 本地预览

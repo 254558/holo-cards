@@ -39,9 +39,9 @@ export const CARDS = [
   { r: 'rare rainbow alt', n: '36', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Rainbow Alt', img: '/patterns/p36.webp' },
   { r: 'common', n: '37', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Plain', img: '/patterns/p37.webp' },
   { r: 'amazing rare', n: '38', s: '', st: 'Basic', su: 'pokémon', tg: false, label: 'Amazing Rare', img: '/patterns/p38.webp' },
-  /* ── 桌面「图片」文件夹加入的自定义卡（拼豆图纸 40×40，p39–p42.png）── */
-  { r: 'rare holo', n: '39', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 01', img: '/patterns/p39.png' },
-  { r: 'rare holo cosmos', n: '40', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 02', img: '/patterns/p40.png' },
-  { r: 'amazing rare', n: '41', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 03', img: '/patterns/p41.png' },
-  { r: 'rare secret', n: '42', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 04', img: '/patterns/p42.png' },
+  /* ── 桌面「图片」文件夹加入的自定义卡（拼豆图纸 40×40，1024² webp 与 p01-38 同规格）── */
+  { r: 'rare holo', n: '39', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 01', img: '/patterns/p39.webp' },
+  { r: 'rare holo cosmos', n: '40', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 02', img: '/patterns/p40.webp' },
+  { r: 'amazing rare', n: '41', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 03', img: '/patterns/p41.webp' },
+  { r: 'rare secret', n: '42', s: '', st: 'Basic', su: 'pokémon', tg: false, label: '图纸 04', img: '/patterns/p42.webp' },
 ]
