@@ -1,6 +1,6 @@
 /* 设备分级：模块加载时算一次静态档位（QUALITY），并起一个运行期帧率探测——
-   开机约 2s 后连续测 2.5s 帧间隔，若卡顿帧占比高则当场升档 veryLowEnd
-   （只升不降，最坏情况 = 短暂卡顿的手机永久去掉纹理，与"特别卡就全关"目标一致）。
+   延迟 2s 后起测，此后每 30s 重测一轮，连续 2 轮卡顿才升档 veryLowEnd
+   （只升不降；偶发卡顿不会永久丢纹理，真卡顿的机器约 1 分钟内确认升档）。
 
    静态判定（存在性守卫，缺失按高端处理；iPhone/桌面 Safari 缺 deviceMemory/
    connection 时按高端，核数仍参与）：
@@ -48,24 +48,56 @@ export const QUALITY = {
    组件用它做响应式降级（Card 的 .no-fx、FaultyTerminal 停帧/移除画布） */
 export const quality = writable(QUALITY)
 
-/* 帧率探测：加载 2s 后测 2.5s，帧间隔 >40ms（<25fps）占比 ≥35% → 升 veryLowEnd。
-   延迟启动避开首屏图片解码/着色器编译的瞬时占用，阈值保守防误伤 */
+/* 帧率探测：延迟 2s 起测（避开首屏图片解码/着色器编译的瞬时占用），每轮测 2.5s，
+   帧间隔 >40ms（<25fps）占比 ≥35% 记为卡顿轮；此后每 30s 重测一轮，
+   连续 2 轮卡顿才升 veryLowEnd——打开瞬间的偶发卡顿（系统忙/后台解码）不会永久丢纹理，
+   真卡顿的机器约 1 分钟内确认升档。升档后永久保持（效果忽隐忽现比一直朴素更难受），不再重测 */
+const BAD_FRACTION = 0.35  // 卡顿帧占比阈值
+const SLOW_MS = 40         // 帧间隔超过视为卡顿
+const PROBE_MS = 2500      // 每轮测量时长
+const RETRY_MS = 30000     // 重测间隔
+const BAD_ROUNDS = 2       // 连续卡顿轮数达到即升档
+
 if (typeof requestAnimationFrame === 'function' && !veryLowEnd) {
-  setTimeout(() => {
+  let badRounds = 0
+
+  const probe = () => {
+    // 页面不可见时 rAF 停帧，测不出真实帧率，稍后重试
+    if (document.hidden) {
+      setTimeout(probe, RETRY_MS)
+      return
+    }
     let frames = 0
     let slow = 0
     let last = performance.now()
-    const end = last + 2500
+    let end = last + PROBE_MS
     const step = (t) => {
+      // 中途被挂起（切走/休眠）会有超大间隔，本轮作废从当前帧重来
+      if (t - last > 1000) {
+        last = t
+        frames = 0
+        slow = 0
+        end = t + PROBE_MS
+        requestAnimationFrame(step)
+        return
+      }
       frames++
-      if (t - last > 40) slow++
+      if (t - last > SLOW_MS) slow++
       last = t
       if (t < end && frames < 200) {
         requestAnimationFrame(step)
-      } else if (frames > 0 && slow / frames >= 0.35) {
-        quality.update((q) => { q.veryLowEnd = true; q.lowEnd = true; return q })
+      } else {
+        badRounds = frames > 0 && slow / frames >= BAD_FRACTION ? badRounds + 1 : 0
+        if (badRounds >= BAD_ROUNDS) {
+          // 连续多轮都卡才是真卡顿；升档后永久保持，不再重测
+          quality.update((q) => ({ ...q, veryLowEnd: true, lowEnd: true }))
+        } else {
+          setTimeout(probe, RETRY_MS)
+        }
       }
     }
     requestAnimationFrame(step)
-  }, 2000)
+  }
+
+  setTimeout(probe, 2000)
 }
