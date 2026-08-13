@@ -1,0 +1,35 @@
+# push 到 main 自动构建并部署到 Cloudflare Pages（holo-cards 项目，直接上传方式）
+# 需要仓库 Secrets 里配置 CLOUDFLARE_API_TOKEN（Account → Cloudflare Pages:Edit + Account Settings:Read）
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # 手动触发：仓库 Actions 页点 "Run workflow"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: cloudflare-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 0fcead64970f8c06a1e385bead58d7ff
+          command: pages deploy dist --project-name holo-cards --branch main
